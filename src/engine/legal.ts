@@ -100,7 +100,11 @@ export function sameMove(a: Move, b: Move): boolean {
 
 /** Find the legal version of a move sent by a client (fills in castle and en passant details). */
 export function matchLegal(pos: Position, move: Move): Move | null {
-  return legalMoves(pos).find((m) => sameMove(m, move)) ?? null;
+  const moves = legalMoves(pos);
+  const exact = moves.find((m) => sameMove(m, move));
+  if (exact) return exact;
+  // Plain from/to requests (no castle flag) still resolve to a castle move.
+  return moves.find((m) => sameMove(m, { ...move, castle: m.castle })) ?? null;
 }
 
 export function hasRoyal(pos: Position, color: Color): boolean {
