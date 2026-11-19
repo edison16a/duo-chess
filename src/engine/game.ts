@@ -42,6 +42,18 @@ export interface GameState {
   lastMove: { from: number; to: number } | null;
   /** Pieces each color has lost, used by revive powers and the material bar. */
   lost: Record<Color, PieceKind[]>;
+  /** Superpower inventories. Only present in the superpower mode. */
+  powers?: PowerState;
+}
+
+export interface PowerState {
+  inventory: Record<Color, string[]>;
+  /** Turn key of the last activation, so only one power fires per turn. */
+  usedTurn: string | null;
+}
+
+export function turnKey(pos: Position): string {
+  return `${pos.fullmove}${pos.turn}`;
 }
 
 export function createGame(pos: Position): GameState {
@@ -138,6 +150,7 @@ export function finalize(
     else if (next.rules.checkRules && inCheck(next, opposite(entry.color))) entry.san += "+";
   }
   return {
+    ...game,
     pos: next,
     history: [...game.history, entry],
     repetition,
