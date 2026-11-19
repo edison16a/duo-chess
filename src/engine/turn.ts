@@ -4,6 +4,7 @@
  * the search can reuse the exact same rules as the real game.
  */
 
+import { inCheck } from "./attacks";
 import { opposite } from "./geometry";
 import type { Color, GameEvent, Piece, PieceStatus, Position } from "./types";
 
@@ -54,7 +55,9 @@ export function endTurn(pos: Position, events: GameEvent[]): void {
   tick(pos, events);
   if (mover === "b") pos.fullmove++;
   let next = opposite(mover);
-  if (pos.skip[next] > 0) {
+  // A frozen side still gets to answer a check, otherwise the skip would let
+  // the other player simply capture the king.
+  if (pos.skip[next] > 0 && !(pos.rules.checkRules && inCheck(pos, next))) {
     pos.skip[next]--;
     events.push({ type: "skip", color: next });
     tick(pos, events);
