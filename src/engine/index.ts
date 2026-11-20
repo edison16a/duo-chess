@@ -12,3 +12,4 @@ export { hillSquares, evaluateOutcome } from "./outcome";
 export { endTurn, afterMove, tick } from "./turn";
 export { positionKey } from "./hash";
 export { clonePosition } from "./clone";
+export { pieceMoves, attackSquares, hasWall } from "./movegen";
