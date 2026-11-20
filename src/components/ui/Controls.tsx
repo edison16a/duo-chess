@@ -23,13 +23,14 @@ interface SegmentedProps<T> {
   value: T;
   onChange: (value: T) => void;
   disabled?: boolean;
+  testId?: string;
 }
 
 /** A row of mutually exclusive pills. Compares values with JSON so objects (clock presets) work. */
-export function Segmented<T>({ options, value, onChange, disabled }: SegmentedProps<T>) {
+export function Segmented<T>({ options, value, onChange, disabled, testId }: SegmentedProps<T>) {
   const key = JSON.stringify(value);
   return (
-    <div className={styles.segmented}>
+    <div className={styles.segmented} data-testid={testId}>
       {options.map((o) => (
         <button
           key={o.label}
