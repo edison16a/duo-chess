@@ -33,6 +33,10 @@
     <td><img src="docs/screenshots/powers.png" alt="Power library with rendered art" /></td>
     <td><img src="docs/screenshots/bot.png" alt="Bot setup with an Elo slider" /></td>
   </tr>
+  <tr>
+    <td><img src="docs/screenshots/gameover.png" alt="Game over screen with game ratings and move counts" /></td>
+    <td><img src="docs/screenshots/editor.png" alt="Map editor" /></td>
+  </tr>
 </table>
 
 ## What it is
@@ -71,7 +75,9 @@ The board behaves like the big chess sites. Click or drag to move. Right click a
 
 ### Move ratings
 
-With ratings on, every move gets judged live: Legendary, Brilliant, Great, Best, Excellent, Good, Inaccuracy, Mistake or Blunder. The piece that moved lights up in the rating color. Brilliant, Great and Legendary moves shine, pop and wobble, a Legendary move also throws golden rays, and mistakes and blunders glow red and shake. Each rating has its own sound.
+With ratings on, every move gets judged live: Legendary, Brilliant, Great, Best, Excellent, Good, Book, Inaccuracy, Mistake or Blunder. Known opening moves are Book, checked against about 300 common lines. The piece that moved lights up in the rating color. Brilliant, Great and Legendary moves shine, pop and wobble, a Legendary move also throws golden rays, and mistakes and blunders glow red and shake. Each rating has its own sound.
+
+When the game ends, a results screen names the winner and shows both players side by side: a game rating estimated from accuracy, the accuracy itself, and how many moves of each rating they played. Moves are rated even with ratings hidden, so the results screen always has its numbers.
 
 ### Superpowers
 
@@ -102,10 +108,10 @@ This is deliberately not secure. Anyone with a code could join or read a room, w
 
 The host rates each move and broadcasts the result, so both players see the same badge.
 
-- Standard rule modes (Classic, Lightning, Chess960) use **Stockfish 19** compiled to WebAssembly, running in a Web Worker. The wasm build is copied from `node_modules` into `public/engine` at build time.
-- Every other mode uses a built in alpha beta search with quiescence that runs the exact same rules engine, also in a worker.
+- Standard rule modes (Classic, Lightning, Chess960) use **Stockfish 19** compiled to WebAssembly, running in a Web Worker, at up to depth 18 with the two best lines. A move outside those lines is scored from the same position, so every move is compared fairly. The wasm build is copied from `node_modules` into `public/engine` at build time.
+- Every other mode uses a built in search on the exact same rules engine, also in a worker: iterative deepening alpha beta with killer and history move ordering, check extensions and a quiescence search that knows about atomic blasts, antichess forced captures and multi move turns.
 
-Scores become win chances, and the rating comes from how much win chance the move threw away compared to the best move. A best move that sacrifices material is Brilliant. A move that wins on the spot is Legendary.
+Scores become win chances on the lichess curve, and the rating comes from how much win chance the move gave up compared to the best move, using chess.com's bands. Great means the only good move. Brilliant is a sound sacrifice that is best or close to it. A move that wins on the spot is Legendary. Accuracy and the estimated game rating on the results screen come from the same win chances.
 
 ### 3D, rendered art and the landing page
 
