@@ -27,7 +27,7 @@ export function PowerBar({ mine, theirs, canUse, aiming, onPick, onCancel, me }:
           <Button size="sm" variant="ghost" icon="close" onClick={onCancel}>Cancel</Button>
         </div>
       ) : (
-        me && <div className={styles.barTitle}>{canUse ? "Your powers" : "Your powers (on your turn)"}</div>
+        me && <div className={styles.barTitle}>Your powers</div>
       )}
       <div className={styles.grid}>
         {mine.map((id, i) => (
