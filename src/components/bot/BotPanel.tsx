@@ -18,7 +18,7 @@ export function BotPanel({ elo, onChange }: Props) {
     <div className={styles.card} data-testid="bot-panel">
       <span className={styles.label}>Opponent</span>
       <div className={styles.identity}>
-        <span className={styles.avatar}><Icon name="bot" size={26} /></span>
+        <span className={styles.avatar}><Icon name="bot" size={32} /></span>
         <div className={styles.names}>
           <span className={styles.name} data-testid="bot-name">{botName(value)}</span>
           <span className={styles.level}>{levelLabel(value)}</span>

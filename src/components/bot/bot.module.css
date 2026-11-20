@@ -26,10 +26,8 @@
 .avatar {
   display: grid;
   place-items: center;
-  width: 52px;
+  width: 34px;
   height: 52px;
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--accent) 14%, var(--surface-2));
   color: var(--accent);
   flex-shrink: 0;
 }
