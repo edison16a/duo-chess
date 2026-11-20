@@ -1,5 +1,5 @@
 // Superpowers: draft four picks, then the side to move fires a power and makes moves.
-const { launch, hostAndJoin, move, sq } = require("./helpers.cjs");
+const { launch, hostAndJoin, move, sq, pickMode } = require("./helpers.cjs");
 
 (async () => {
   const { browser, make } = await launch();
@@ -8,7 +8,7 @@ const { launch, hostAndJoin, move, sq } = require("./helpers.cjs");
   const out = process.env.OUT_DIR || "/tmp/claude-0";
   try {
     await hostAndJoin(host, guest);
-    await host.locator('[data-mode="superpowers"]').click();
+    await pickMode(host, "superpowers");
     await host.waitForTimeout(300);
     await host.screenshot({ path: `${out}/sp-lobby.png` });
     await host.getByTestId("start").click();

@@ -44,6 +44,17 @@ async function move(page, fromSq, toSq) {
   return box;
 }
 
+/** Picks a mode in the lobby, paging through the carousel until its card shows up. */
+async function pickMode(page, id) {
+  for (let i = 0; i < 6; i++) {
+    const card = page.locator(`[data-mode="${id}"]`);
+    if (await card.count()) return card.first().click();
+    await page.getByTestId("modes-next").click();
+    await page.waitForTimeout(150);
+  }
+  throw new Error(`Mode ${id} not found`);
+}
+
 const sq = (name) => (Number(name[1]) - 1) * 8 + "abcdefgh".indexOf(name[0]);
 
-module.exports = { launch, hostAndJoin, move, sq, BASE };
+module.exports = { launch, hostAndJoin, move, sq, pickMode, BASE };

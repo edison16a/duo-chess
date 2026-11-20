@@ -1,6 +1,6 @@
 // Captures the README screenshots from real two player sessions.
 // Run against `npm run dev` with the local broker; writes to docs/screenshots.
-const { launch, hostAndJoin, move, sq, BASE } = require("./helpers.cjs");
+const { launch, hostAndJoin, move, sq, BASE, pickMode } = require("./helpers.cjs");
 
 const OUT = "docs/screenshots";
 process.env.DSF = process.env.DSF || "2";
@@ -9,7 +9,7 @@ async function room(make, mode, before) {
   const host = await make();
   const guest = await make();
   await hostAndJoin(host, guest);
-  if (mode !== "classic") await host.locator(`[data-mode="${mode}"]`).click();
+  if (mode !== "classic") await pickMode(host, mode);
   if (before) await before(host);
   await host.waitForTimeout(300);
   return { host, guest };

@@ -1,7 +1,7 @@
 // Plays a scripted game between two browsers in any mode.
 //   MODE=atomic MOVES="g1f3 d7d5 f3e5 d8d6 e5f7" node tests/e2e/play.cjs
 // Moves alternate White, Black. With RESULT=1 the game must end afterwards.
-const { launch, hostAndJoin, move, sq } = require("./helpers.cjs");
+const { launch, hostAndJoin, move, sq, pickMode } = require("./helpers.cjs");
 
 const mode = process.env.MODE || "classic";
 const moves = (process.env.MOVES || "f2f3 e7e5 g2g4 d8h4").split(" ");
@@ -13,7 +13,7 @@ const out = process.env.OUT || `/tmp/claude-0/e2e-${mode}.png`;
   const guest = await make();
   try {
     const code = await hostAndJoin(host, guest);
-    if (mode !== "classic") await host.locator(`[data-mode="${mode}"]`).click();
+    if (mode !== "classic") await pickMode(host, mode);
     await host.waitForTimeout(300);
     await host.getByTestId("start").click();
     await host.getByTestId("board").waitFor();

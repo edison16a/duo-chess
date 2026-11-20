@@ -2,7 +2,7 @@
 //   BASE_URL=http://localhost:3100 node tests/e2e/bot.cjs
 // Covers the Elo panel, a Classic game (Stockfish), a declined draw, a
 // rematch the bot accepts, then a Double Move game after "New game".
-const { launch, BASE } = require("./helpers.cjs");
+const { launch, pickMode, BASE } = require("./helpers.cjs");
 
 const out = process.env.OUT_DIR || "/tmp/claude-0";
 const MAX_REPLY_MS = 4000;
@@ -103,7 +103,7 @@ async function play(page, turns) {
     await page.getByRole("button", { name: "Resign" }).click();
     await page.getByRole("button", { name: "Confirm" }).click();
     await page.getByTestId("bot-new-game").click();
-    await page.locator('[data-mode="double"]').click();
+    await pickMode(page, "double");
     await page.getByTestId("start").click();
     await page.getByTestId("board").waitFor();
     await play(page, 4);

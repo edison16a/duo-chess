@@ -1,6 +1,6 @@
 // Switches to the 3D board, plays moves by clicking 3D squares and checks
 // effects and orbiting do not break anything. Needs WebGL (swiftshader).
-const { launch, hostAndJoin, move, sq } = require("./helpers.cjs");
+const { launch, hostAndJoin, move, sq, pickMode } = require("./helpers.cjs");
 
 async function click3d(page, square) {
   const p = await page.evaluate((s) => document.querySelector('[data-testid="board3d"] canvas').__scene.screenOf(s), square);
@@ -14,7 +14,7 @@ async function click3d(page, square) {
   const out = process.env.OUT_DIR || "/tmp/claude-0";
   try {
     await hostAndJoin(host, guest);
-    if (process.env.MODE) await host.locator(`[data-mode="${process.env.MODE}"]`).click();
+    if (process.env.MODE) await pickMode(host, process.env.MODE);
     await host.getByTestId("start").click();
     await host.getByTestId("board").waitFor();
     const hostWhite = await host.getByTestId("board").evaluate((el) => el.querySelector('[data-square="0"]').getBoundingClientRect().top > el.querySelector('[data-square="56"]').getBoundingClientRect().top);
