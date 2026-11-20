@@ -6,7 +6,8 @@
  * Triple: you see three powers and keep one. The rest are gone.
  * Deck: you build your own hand within a point budget.
  *
- * The game starts once both players are done.
+ * The game starts once both players are done. Random is listed here so the
+ * lobby offers it, but it never drafts: see slots.ts.
  */
 
 import type { Color } from "@/engine";
@@ -14,12 +15,13 @@ import { ALL_POWERS, powersOfRarity } from "./catalog";
 import { deckProblem } from "./deck";
 import { RARITIES, RARITY_WEIGHT } from "./rarity";
 
-export type DraftStyle = "split" | "triple" | "deck";
+export type DraftStyle = "split" | "triple" | "deck" | "random";
 
 export const DRAFT_STYLES: { id: DraftStyle; label: string }[] = [
   { id: "split", label: "Take & give" },
   { id: "triple", label: "Triple draft" },
   { id: "deck", label: "Free deck" },
+  { id: "random", label: "Random" },
 ];
 
 export interface DraftPick {
@@ -45,7 +47,7 @@ export interface DraftState {
   locked: Record<Color, boolean>;
 }
 
-const OPTION_COUNT: Record<DraftStyle, number> = { split: 2, triple: 3, deck: 0 };
+const OPTION_COUNT: Record<DraftStyle, number> = { split: 2, triple: 3, deck: 0, random: 0 };
 
 function rollRarity(random: () => number) {
   const total = RARITIES.reduce((sum, r) => sum + RARITY_WEIGHT[r], 0);
