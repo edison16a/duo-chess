@@ -120,6 +120,9 @@ function expect(cond, msg) {
     await b.mouse.click((await center(b, "h5")).x, (await center(b, "h5")).y, { button: "right" });
     chain = await pieces(b);
     expect(chain.a7 === "pawn" && !chain.a5, "cancelling puts the pawn back");
+    await move(b, sq("a7"), sq("a6"));
+    await b.keyboard.press("Escape");
+    expect((await count(b, "[data-premove]")) === 0 && (await pieces(b)).a7 === "pawn", "Escape cancels premoves");
 
     // A premove that becomes illegal is dropped.
     await move(b, sq("d8"), sq("h4"));

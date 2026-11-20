@@ -6,7 +6,8 @@
  * away, so a pawn premoved twice really stands two squares up, and the next
  * premove starts from there. When your turn comes the first queued move is
  * played if it is still legal; the rest wait for your following turns. If a
- * queued move has become illegal the whole queue is dropped.
+ * queued move has become illegal the whole queue is dropped. Escape, a right
+ * click or a click on an empty square cancels them all.
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -79,6 +80,17 @@ export function usePremove({ pos, me, playing, myTurn, onMove }: Options): Premo
     setQueue(move ? rest : []);
     if (move) onMove(move);
   }, [myTurn, key]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Escape throws away every queued premove, wherever the pointer is.
+  const queued = queue.length > 0;
+  useEffect(() => {
+    if (!queued) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setQueue([]);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [queued]);
 
   const onQueue = useCallback((move: Move) => setQueue((q) => (q.length < MAX_QUEUE ? [...q, move] : q)), []);
   const onCancel = useCallback(() => setQueue([]), []);
