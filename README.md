@@ -7,9 +7,9 @@
 <p align="center">Two player online chess with wild game modes, 50 drafted superpowers and live move ratings.</p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/license-MIT-5E9C76" alt="License: MIT" />
-  <img src="https://img.shields.io/badge/Next.js-16-5E9C76" alt="Next.js 16" />
-  <img src="https://img.shields.io/badge/platform-web%20%7C%20mobile-5E9C76" alt="Platforms: web and mobile" />
+  <img src="https://img.shields.io/badge/license-MIT-46C37B" alt="License: MIT" />
+  <img src="https://img.shields.io/badge/Next.js-16-46C37B" alt="Next.js 16" />
+  <img src="https://img.shields.io/badge/platform-web%20%7C%20mobile-46C37B" alt="Platforms: web and mobile" />
 </p>
 
 ## Screenshots
