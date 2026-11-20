@@ -1,11 +1,12 @@
 /**
- * The power draft, in three styles the host picks from:
+ * The power draft, in three styles the host picks from. Both players draft
+ * at the same time, each from their own offers:
  *
  * Split: you see two powers, take one, and the opponent gets the other.
  * Triple: you see three powers and keep one. The rest are gone.
- * Deck: both players build their own hand at once within a point budget.
+ * Deck: you build your own hand within a point budget.
  *
- * Split and Triple alternate turns. Deck waits until both hands are locked.
+ * The game starts once both players are done.
  */
 
 import type { Color } from "@/engine";
@@ -32,10 +33,12 @@ export interface DraftState {
   style: DraftStyle;
   /** Powers each player ends up with. */
   size: number;
-  turn: Color;
-  /** Total picks in a Split or Triple draft, both players together. */
-  total: number;
-  options: string[];
+  /** Picks each player makes in Split or Triple. */
+  rounds: number;
+  /** Each player's current offer. */
+  options: Record<Color, string[]>;
+  /** Picks each player has made so far. */
+  picks: Record<Color, number>;
   inventory: Record<Color, string[]>;
   log: DraftPick[];
   /** Deck style: who has locked in their hand. */
@@ -68,46 +71,56 @@ export function rollOptions(random: () => number, count = 3): string[] {
 }
 
 export function createDraft(style: DraftStyle, size: number, random: () => number): DraftState {
-  // A Split pick hands out two powers, so it takes half as many picks to fill both hands.
-  const total = style === "split" ? size : style === "triple" ? size * 2 : 0;
+  // A Split pick hands out two powers, one to each player, so it takes half as many picks.
+  const rounds = style === "split" ? Math.ceil(size / 2) : style === "triple" ? size : 0;
+  const count = OPTION_COUNT[style];
   return {
     style,
     size,
-    turn: "w",
-    total,
-    options: rollOptions(random, OPTION_COUNT[style]),
+    rounds,
+    options: { w: rollOptions(random, count), b: rollOptions(random, count) },
+    picks: { w: 0, b: 0 },
     inventory: { w: [], b: [] },
     log: [],
     locked: { w: false, b: false },
   };
 }
 
+/** True once this player has nothing left to choose. */
+export function playerDone(draft: DraftState, color: Color): boolean {
+  return draft.style === "deck" ? draft.locked[color] : draft.picks[color] >= draft.rounds;
+}
+
 export function draftDone(draft: DraftState): boolean {
-  if (draft.style === "deck") return draft.locked.w && draft.locked.b;
-  return draft.log.length >= draft.total;
+  return playerDone(draft, "w") && playerDone(draft, "b");
 }
 
 /** Applies one player's choice. `picks` is one power, or a whole hand in Deck style. */
 export function applyDraft(draft: DraftState, by: Color, picks: string[], random: () => number): DraftState | string {
-  if (draftDone(draft)) return "The draft is over";
+  if (playerDone(draft, by)) return "You are done drafting";
   const other: Color = by === "w" ? "b" : "w";
   const inventory = { w: draft.inventory.w.slice(), b: draft.inventory.b.slice() };
 
   if (draft.style === "deck") {
-    if (draft.locked[by]) return "Your deck is already locked in";
     const problem = deckProblem(picks, draft.size);
     if (problem) return problem;
     inventory[by] = picks.slice();
     return { ...draft, inventory, locked: { ...draft.locked, [by]: true } };
   }
 
-  if (draft.turn !== by) return "Not your pick";
+  const offer = draft.options[by];
   const keep = picks[0];
-  if (picks.length !== 1 || !draft.options.includes(keep)) return "Pick one of the offered powers";
+  if (picks.length !== 1 || !offer.includes(keep)) return "Pick one of the offered powers";
   inventory[by].push(keep);
-  const give = draft.style === "split" ? draft.options.find((o) => o !== keep)! : null;
+  const give = draft.style === "split" ? offer.find((o) => o !== keep)! : null;
   if (give) inventory[other].push(give);
-  const next: DraftState = { ...draft, inventory, log: [...draft.log, { by, keep, give }], turn: other, options: [] };
-  if (!draftDone(next)) next.options = rollOptions(random, OPTION_COUNT[draft.style]);
-  return next;
+  const made = draft.picks[by] + 1;
+  const next = made < draft.rounds ? rollOptions(random, OPTION_COUNT[draft.style]) : [];
+  return {
+    ...draft,
+    inventory,
+    log: [...draft.log, { by, keep, give }],
+    picks: { ...draft.picks, [by]: made },
+    options: { ...draft.options, [by]: next },
+  };
 }

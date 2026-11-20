@@ -24,11 +24,11 @@ describe("bot superpowers", () => {
     const rare = powersOfRarity("rare")[0].id;
     const epic = powersOfRarity("epic")[0].id;
     const mythical = powersOfRarity("mythical")[0].id;
-    const offer = (options: string[]) => ({ ...createDraft("triple", 2, seeded(1)), options });
+    const offer = (options: string[]) => ({ ...createDraft("triple", 2, seeded(1)), options: { w: options, b: [] } });
     for (let seed = 1; seed < 6; seed++) {
-      expect(chooseDraft(offer([epic, rare, mythical]), seeded(seed))).toEqual([mythical]);
+      expect(chooseDraft(offer([epic, rare, mythical]), "w", seeded(seed))).toEqual([mythical]);
     }
-    expect(chooseDraft(offer([rare, powersOfRarity("rare")[1].id, epic]), seeded(9))).toEqual([epic]);
+    expect(chooseDraft(offer([rare, powersOfRarity("rare")[1].id, epic]), "w", seeded(9))).toEqual([epic]);
   });
 
   it("builds a Free Deck that fits the budget and spends most of it", () => {
@@ -102,8 +102,8 @@ describe("bot player in a room", () => {
     expect(room.phase).toBe("draft");
 
     for (let step = 0; step < 400 && room.phase !== "over" && (room.game?.history.length ?? 0) < 40; step++) {
-      if (room.phase === "draft" && room.draft?.turn === "w") {
-        dispatch({ type: "draft", id: "me", picks: [room.draft.options[0]] });
+      if (room.phase === "draft" && room.draft && room.draft.options.w.length) {
+        dispatch({ type: "draft", id: "me", picks: [room.draft.options.w[0]] });
       } else if (room.phase === "playing" && room.game?.pos.turn === "w") {
         dispatch({ type: "move", id: "me", move: randomMove(room, ctx())! });
       }

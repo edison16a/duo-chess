@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createGame, createPosition, legalMoves, parseSquare, playMove, standardLayout, type GameState } from "@/engine";
-import { ALL_POWERS, activatePower, applyDraft, createDraft, deckBudget, deckCost, draftDone, rollOptions, type DraftStyle } from "@/features/powers";
+import { ALL_POWERS, activatePower, applyDraft, createDraft, deckBudget, deckCost, draftDone, playerDone, rollOptions, type DraftStyle } from "@/features/powers";
 import { POWER_ICONS } from "@/features/powers/icons";
 
 function poweredGame(powers: string[]): GameState {
@@ -97,12 +97,15 @@ describe("draft", () => {
     const random = seeded();
     let draft = createDraft(style, 4, random);
     let picks = 0;
-    while (!draftDone(draft)) {
-      const next = applyDraft(draft, draft.turn, [draft.options[0]], random);
+    // White races ahead to show the players do not wait on each other.
+    for (const color of ["w", "w", "w", "w", "b", "b", "b", "b"] as const) {
+      if (playerDone(draft, color)) continue;
+      const next = applyDraft(draft, color, [draft.options[color][0]], random);
       expect(typeof next).toBe("object");
       draft = next as typeof draft;
       picks++;
     }
+    expect(draftDone(draft)).toBe(true);
     return { draft, picks };
   };
 
@@ -122,12 +125,13 @@ describe("draft", () => {
     expect(draft.inventory.b).toHaveLength(4);
   });
 
-  it("refuses picks out of turn or off the table", () => {
+  it("refuses picks off your own table or after you are done", () => {
     const random = seeded();
-    const draft = createDraft("triple", 2, random);
-    expect(typeof applyDraft(draft, "b", [draft.options[0]], random)).toBe("string");
-    const offTable = ALL_POWERS.find((p) => !draft.options.includes(p.id))!.id;
+    let draft = createDraft("triple", 1, random);
+    const offTable = ALL_POWERS.find((p) => !draft.options.w.includes(p.id))!.id;
     expect(typeof applyDraft(draft, "w", [offTable], random)).toBe("string");
+    draft = applyDraft(draft, "w", [draft.options.w[0]], random) as typeof draft;
+    expect(typeof applyDraft(draft, "w", [draft.options.b[0]], random)).toBe("string");
   });
 
   it("prices Free Deck cards by rarity", () => {

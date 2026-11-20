@@ -2,6 +2,7 @@
 
 import type { Color } from "@/engine";
 import { evaluate } from "@/features/analysis/evaluate";
+import { playerDone } from "@/features/powers";
 import { colorOf } from "@/features/room/reducer";
 import type { RoomState } from "@/features/room/types";
 
@@ -20,10 +21,8 @@ export function jobFor(state: RoomState, id: string): BotJob | null {
   if (!color) return null;
   const draft = state.draft;
   if (state.phase === "draft" && draft) {
-    // Free Deck has no turns: the bot owes a hand until it has locked one in.
-    if (draft.style === "deck" ? !draft.locked[color] : draft.turn === color) {
-      return { kind: "draft", key: `draft:${draft.log.length}`, color };
-    }
+    // Everyone drafts at once, so the bot owes a pick until its own part is done.
+    if (!playerDone(draft, color)) return { kind: "draft", key: `draft:${draft.picks?.[color] ?? 0}`, color };
   }
   const game = state.game;
   if (state.phase === "playing" && game && !game.result && game.pos.turn === color) {

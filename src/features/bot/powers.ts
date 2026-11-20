@@ -18,10 +18,10 @@ export interface PowerPlan {
  * a Split draft also hands the most common one to the opponent. In Free
  * Deck it builds a whole hand.
  */
-export function chooseDraft(draft: DraftState, random: () => number): string[] {
+export function chooseDraft(draft: DraftState, color: Color, random: () => number): string[] {
   if (draft.style === "deck") return buildDeck(draft.size, random);
   // The random part is below one rarity step, so it only breaks ties.
-  const ranked = draft.options
+  const ranked = draft.options[color]
     .map((id) => ({ id, rank: RARITIES.indexOf(POWERS[id]?.rarity ?? "rare") + random() * 0.5 }))
     .sort((a, b) => b.rank - a.rank);
   return [ranked[0].id];
