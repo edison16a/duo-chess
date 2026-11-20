@@ -52,14 +52,25 @@ export function useInteraction({ pos, legal, onMove, targeting, dropKind, autoQu
 
   // A new position or a new input mode clears half finished input. We key on
   // the position hash, not the object, because every network update is a
-  // fresh object even when nothing on the board moved.
+  // fresh object even when nothing on the board moved. A selected piece that
+  // is still standing on its square stays selected, so the opponent moving
+  // (or a queued premove playing) never knocks you out of a premove chain.
   const key = positionKey(pos);
   const aiming = targeting !== null;
+  const selectedId = selected !== null ? pos.board[selected]?.id ?? null : null;
+  const [heldId, setHeldId] = useState<number | null>(null);
+  useEffect(() => setHeldId(selectedId), [selected]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    setPromotion(null);
+    setDuckFor(null);
+    if (selected !== null && heldId !== null && pos.board[selected]?.id === heldId) return;
+    setSelected(null);
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     setSelected(null);
     setPromotion(null);
     setDuckFor(null);
-  }, [key, aiming, dropKind]);
+  }, [aiming, dropKind]);
 
   const targets = useMemo(() => {
     if (dropKind) return targetMap(legal.filter((m) => m.drop === dropKind));
