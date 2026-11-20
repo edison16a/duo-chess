@@ -14,5 +14,7 @@ export interface SceneDef {
   /** Loop length in seconds for rendered clips. */
   duration: number;
   bloom?: number;
+  /** Best moment (seconds) for a still poster of this scene. */
+  poster?: number;
   setup: (stage: Stage) => Promise<SceneInstance>;
 }

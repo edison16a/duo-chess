@@ -21,6 +21,7 @@ declare global {
   interface Window {
     __renderAt?: (t: number) => void;
     __sceneReady?: boolean;
+    __posterAt?: number;
   }
 }
 
@@ -51,6 +52,7 @@ export function SceneView({ load, capture = false, className, onReady }: Props) 
       };
       if (capture) {
         window.__renderAt = renderAt;
+        window.__posterAt = def.poster;
         renderAt(0);
         window.__sceneReady = true;
       } else {

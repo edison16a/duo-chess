@@ -11,6 +11,7 @@ export interface ScriptSpec {
   fen: string;
   shape?: BoardShape;
   bloom?: number;
+  poster?: number;
   camera: { radius: number; height: number; speed?: number; start?: number; target?: [number, number, number] };
   cues: Cue[];
   /** Runs once after pieces are placed, for scene dressing. */
@@ -21,6 +22,7 @@ export function scripted(spec: ScriptSpec): SceneDef {
   return {
     duration: spec.duration,
     bloom: spec.bloom ?? 0.5,
+    poster: spec.poster,
     async setup(stage) {
       const shape = spec.shape ?? { width: 8, height: 8 };
       addBoard(stage, shape);

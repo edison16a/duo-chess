@@ -54,11 +54,15 @@ async function modeClip(page, id) {
 }
 
 async function powerPoster(page, id) {
-  const fps = 24, at = 0.85;
+  const fps = 24;
   const file = path.join(TMP, `power-${id}.png`);
-  await render(page, `power:${id}`, { width: 480, height: 300 }, async (i) => {
-    if (i === Math.round(at * fps)) await page.screenshot({ path: file });
-  }, Math.round(at * fps) + 1, fps);
+  await page.setViewportSize({ width: 480, height: 300 });
+  await page.goto(`${BASE}/render?scene=power:${id}&capture=1`);
+  await page.waitForFunction(() => window.__sceneReady, null, { timeout: 120000 });
+  // Each scene says when it looks best; step there frame by frame so effects simulate properly.
+  const at = (await page.evaluate(() => window.__posterAt)) ?? 0.85;
+  for (let i = 0; i <= Math.round(at * fps); i++) await page.evaluate((t) => window.__renderAt(t), i / fps);
+  await page.screenshot({ path: file });
   fs.mkdirSync(path.join(OUT, "powers"), { recursive: true });
   execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", file, "-quality", "80", path.join(OUT, "powers", `${id}.webp`)]);
   console.log("power", id);
