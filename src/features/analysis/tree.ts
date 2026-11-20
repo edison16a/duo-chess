@@ -23,6 +23,17 @@ export interface Ctx {
   limit: number;
   deadline: number;
   order: Ordering;
+  /** Checks stop shortening the search past this ply, so perpetual checks cannot run forever. */
+  maxPly: number;
+}
+
+/**
+ * A move that gives check does not use up depth. Forcing lines like a
+ * bishop sacrifice on f7 followed by a knight mate are only three or four
+ * moves deep, but they hide just past the horizon without this.
+ */
+export function nextDepth(depth: number, ply: number, check: boolean, ctx: Ctx): number {
+  return check && ply + 1 < ctx.maxPly ? depth : depth - 1;
 }
 
 /** How many capture plies quiescence may add past the horizon. */
@@ -102,7 +113,7 @@ export function negamax(pos: Position, depth: number, alpha: number, beta: numbe
     if (!made) continue;
     legal++;
     if (capture) captures++;
-    const score = childScore(pos, made, ply, alpha, beta, (n, a, b, c) => negamax(n, depth - 1, a, b, ply + 1, ctx, c, n.turn === pos.turn));
+    const score = childScore(pos, made, ply, alpha, beta, (n, a, b, c) => negamax(n, nextDepth(depth, ply, c, ctx), a, b, ply + 1, ctx, c, n.turn === pos.turn));
     if (score > best) best = score;
     if (score > alpha) alpha = score;
     if (alpha >= beta) {
