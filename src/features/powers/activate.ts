@@ -8,6 +8,7 @@ import {
   type Color, type GameEvent, type GameState,
 } from "@/engine";
 import { POWERS } from "./catalog";
+import { readySlot, spendPower } from "./slots";
 import type { PowerCtx } from "./types";
 
 export function canUsePowerNow(game: GameState, color: Color): boolean {
@@ -25,7 +26,9 @@ export function activatePower(
   const def = POWERS[powerId];
   if (!def || !game.powers) return "Unknown power";
   if (!canUsePowerNow(game, color)) return "You can use one power per turn, on your turn";
-  if (!game.powers.inventory[color].includes(powerId)) return "You do not have that power";
+  if (readySlot(game.powers, color, powerId) < 0) {
+    return game.powers.inventory[color].includes(powerId) ? "That power is still recharging" : "You do not have that power";
+  }
   if (squares.length !== def.targets.length) return "Pick all the targets first";
 
   const pos = clonePosition(game.pos);
@@ -52,12 +55,10 @@ export function activatePower(
   if (def.costsMove) afterMove(pos, gaveCheck, events);
   else if (gaveCheck) pos.checks[color]++;
 
-  const inventory = { ...game.powers.inventory, [color]: game.powers.inventory[color].slice() };
-  inventory[color].splice(inventory[color].indexOf(powerId), 1);
   const withPowers: GameState = {
     ...game,
     lost: recordLosses(lost, game.pos, pos),
-    powers: { inventory, usedTurn: turnKey(game.pos) },
+    powers: spendPower(game.powers, color, powerId, game.pos, turnKey(game.pos)),
   };
   return finalize(withPowers, pos, events, withPowers.lost, {
     ply: game.history.length,
