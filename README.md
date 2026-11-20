@@ -14,30 +14,34 @@
 
 ## Screenshots
 
-<img src="docs/screenshots/hero.png" alt="A classic game with live move ratings and the eval bar" width="100%" />
+<img src="docs/screenshots/home.png" alt="The home screen over a live 3D battlefield" width="100%" />
 
 <table>
   <tr>
-    <td><img src="docs/screenshots/lobby.png" alt="Lobby with modes and mods" /></td>
+    <td><img src="docs/screenshots/board3d.png" alt="A rated game on the 3D board" /></td>
+    <td><img src="docs/screenshots/board2d.png" alt="The same game on the 2D board with an arrow" /></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/lobby.png" alt="Lobby with the animated mode carousel" /></td>
     <td><img src="docs/screenshots/draft.png" alt="Superpower draft" /></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/aiming.png" alt="Aiming a superpower" /></td>
+    <td><img src="docs/screenshots/preview.png" alt="Live 3D preview of a power" /></td>
     <td><img src="docs/screenshots/atomic.png" alt="Atomic explosion" /></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/powers.png" alt="Power library" /></td>
-    <td><img src="docs/screenshots/pieces.png" alt="Fairy pieces with movement diagrams" /></td>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/editor.png" alt="Map editor" /></td>
-    <td><img src="docs/screenshots/home.png" alt="Home screen" /></td>
+    <td><img src="docs/screenshots/powers.png" alt="Power library with rendered art" /></td>
+    <td><img src="docs/screenshots/bot.png" alt="Bot setup with an Elo slider" /></td>
   </tr>
 </table>
 
 ## What it is
 
 Duo Chess is a quick, no account chess site for exactly two people. One person presses **Host game**, gets a six letter code, and the other person types it in. The host picks a mode and some mods, presses start, and you play. There are no ratings, no profiles and nothing stored long term. A room lives on the broker while you play and disappears afterwards.
+
+No opponent around? **Play vs bot** works in every mode, with a strength slider from 400 to 3000 Elo.
+
+Every game can be played on a flat 2D board or a full 3D board. Flip the **2D / 3D** switch in the game panel, drag empty space to orbit the camera, scroll to zoom and double click to reset the view. Both boards play the same real time 3D effects: atomic fireballs, lightning, pieces sealed in ice with icicles hanging off them, shield domes, portals and more.
 
 ### Game modes
 
@@ -61,13 +65,17 @@ Duo Chess is a quick, no account chess site for exactly two people. One person p
 
 Mods stack on top of any mode: a chess clock (bullet to classical, or none), a per move timer, **Show ratings**, an eval bar, blindfold, and which color the host plays.
 
+### Board controls
+
+The board behaves like the big chess sites. Click or drag to move. Right click a square to highlight it and right drag to draw an arrow (knight jumps bend into an L); hold Shift, Ctrl or Alt for green, blue or red. While your opponent thinks you can queue a premove, which plays the moment your turn comes if it is still legal. Click any move in the list, or use the arrow keys, to step back through the game; End returns to the live position.
+
 ### Move ratings
 
 With **Show ratings** on, every move gets judged live: Legendary, Brilliant, Great, Best, Excellent, Good, Inaccuracy, Mistake or Blunder. The piece that moved lights up in the rating color. Brilliant, Great and Legendary moves shine, pop and wobble, a Legendary move also throws golden rays, and mistakes and blunders glow red and shake. Each rating has its own sound.
 
 ### Superpowers
 
-There are 50 powers across five rarities: 15 rare, 12 epic, 10 legendary, 8 mythical and 5 chromatic (which cycle through the rainbow). Before the game you draft in turns. Each pick shows three rolled powers: keep one, give one to your opponent, and the last one gets crossed out. In game you can fire one power per turn. Some are free (Frostbite, Aegis, Double Down), others use up your move (Meteor, Teleport, Black Hole). Every power has its own line icon, board effect and sound.
+There are 50 powers across five rarities: 15 rare, 12 epic, 10 legendary, 8 mythical and 5 chromatic (which cycle through the rainbow). Before the game you draft in turns. Each pick shows three rolled powers: keep one, give one to your opponent, and the last one gets crossed out. In game you can fire one power per turn. Some are free (Frostbite, Aegis, Double Down), others use up your move (Meteor, Teleport, Black Hole). Every power has its own line icon, board effect and sound. Its card shows a cinematic render of the power in a world that fits it (Frostbite freezes a knight in an ice cave, Meteor lands in a volcano), and resting on a card for three seconds plays it live in 3D with how to use it.
 
 ### Fairy pieces and maps
 
@@ -98,6 +106,17 @@ The host rates each move and broadcasts the result, so both players see the same
 - Every other mode uses a built in alpha beta search with quiescence that runs the exact same rules engine, also in a worker.
 
 Scores become win chances, and the rating comes from how much win chance the move threw away compared to the best move. A best move that sacrifices material is Brilliant. A move that wins on the spot is Legendary.
+
+### 3D, rendered art and the landing page
+
+Everything 3D is plain three.js, written in `src/three`.
+
+- **Pieces** are modelled in code: the classics are turned on a lathe, and the knight family, dragon, rail, cannon, wizard, phoenix and the rest are sculpted from lathes, tubes and bevelled extrusions.
+- **Effects** live in `src/three/fx` and work in a frame where one square is one unit, so the same explosion runs on the 3D board, on top of the 2D board and in the rendered previews.
+- **Worlds** in `src/three/env` (ice cave, volcano, storm, void, temple, grass battlefield and more) frame the mode clips and power art.
+- **The landing page** runs a live battle on a grass plain behind the home screen, with pieces blasted toward the camera.
+
+Mode clips and power cards are rendered offline from the same scenes, so they always match the game. `scripts/render-media.cjs` steps each scene frame by frame in headless Chromium and encodes WebM loops and WebP stills into `public/media`.
 
 ### Sound
 
@@ -153,7 +172,17 @@ MODE=atomic MOVES="g1f3 d7d5 f3e5 d8d6 e5f7" RESULT=1 node tests/e2e/play.cjs
 node tests/e2e/superpowers.cjs
 ```
 
-`tests/e2e/screenshots.cjs` regenerates the images in this README.
+`tests/e2e/board.cjs` covers arrows, premoves and history, `tests/e2e/board3d.cjs` plays a game by clicking squares on the 3D board, and `tests/e2e/bot.cjs` plays the bot. `tests/e2e/screenshots.cjs` regenerates the images in this README.
+
+To re-render the mode clips and power art after changing a scene, run a dev server on port 3110 and then the media script.
+
+```bash
+NEXT_DIST_DIR=.next-media npx next dev -p 3110
+```
+
+```bash
+node scripts/render-media.cjs all
+```
 
 ## Project structure
 
@@ -163,18 +192,28 @@ src/
   engine/              Rules engine: pieces, move generation, outcomes, notation
   features/
     analysis/          Stockfish client, built in search, rating logic
+    bot/               Bot brain, Elo mapping, duck and power choices
     audio/             Synthesized sound effects
     maps/              Map format, premade maps, local storage
     modes/             Mode catalog, mods, game builder
     net/               MQTT channel and room codes
     powers/            50 powers, targeting, activation, draft, icons
-    room/              Room state, host reducer, clocks, useRoom hook
+    room/              Room state, host reducer, clocks, online and local rooms
+  three/
+    pieces/            3D piece models
+    fx/                3D effects
+    env/               Cinematic worlds
+    board3d/           The 3D game board
+    overlay/           3D effects over the 2D board
+    scenes/            Mode clips, power shots, landing battle
   components/
-    board/             Board, pieces, overlays, effects, animations
+    board/             2D board, arrows, premoves, effects layer
+    board3d/           3D board component and input
     game/              Game screen panels
     lobby/             Lobby, mode grid, mods, map picker
-    editor/, library/, home/, room/, ui/
-public/pieces/         Piece artwork
+    bot/, editor/, library/, home/, room/, three/, ui/
+public/pieces/         2D piece artwork
+public/media/          Rendered mode clips and power art
 tests/unit/            Vitest suites
 tests/e2e/             Two browser Playwright scripts
 ```
