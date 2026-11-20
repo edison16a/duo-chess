@@ -5,18 +5,19 @@
  */
 
 import type { Position } from "@/engine";
-import { scoreRootMoves } from "./search";
+import { scoreRootMoves, type SearchLimits } from "./search";
 
 interface Request {
   id: number;
   pos: Position;
   depth: number;
+  limits?: SearchLimits;
 }
 
 self.onmessage = (e: MessageEvent<Request>) => {
-  const { id, pos, depth } = e.data;
+  const { id, pos, depth, limits } = e.data;
   try {
-    const scores = scoreRootMoves(pos, depth);
+    const scores = scoreRootMoves(pos, depth, undefined, limits);
     self.postMessage({ id, scores });
   } catch (error) {
     self.postMessage({ id, error: String(error) });

@@ -4,33 +4,46 @@
  * rating so both players see the same badge.
  */
 
-import { moveToUci, sameMove, toFen, type Color, type Move, type Position, type RatingId } from "@/engine";
+import { moveToUci, toFen, type Color, type Move, type Position } from "@/engine";
 import type { AnalysisKind } from "@/features/modes";
+import { isBookPosition, loadBook } from "./book";
 import { classifyMove } from "./classify";
+import { moveFacts, rateFromScores, type MoveRating } from "./judge";
 import { InternalEngine } from "./internal";
-import { isSacrifice } from "./sacrifice";
-import { StockfishClient } from "./stockfish";
+import type { RootScore, SearchLimits } from "./search";
+import { StockfishClient, type AnalyseOptions, type EngineLine } from "./stockfish";
 
-export interface MoveRating {
-  rating: RatingId;
-  /** Evaluation after the move, centipawns from White's view. */
-  evalCp: number;
+export type { MoveRating };
+
+/** Engines the analyzer talks to. Tests pass inline versions; the app uses workers. */
+export interface AnalyzerDeps {
+  search: (pos: Position, depth: number, limits: SearchLimits) => Promise<RootScore[] | null>;
+  analyse: (fen: string, opts: AnalyseOptions) => Promise<EngineLine[]>;
+  dispose?: () => void;
 }
+
+/**
+ * Built in search budget. It deepens until about a second has passed, so a
+ * quiet position reaches depth 4 or 5 and a messy one still finishes depth 3.
+ */
+export const INTERNAL_LIMITS = { depth: 5, nodes: 200_000, timeMs: 1000 };
+/**
+ * Stockfish budget. Depth caps fast machines and movetime caps slow ones,
+ * so the two searches together stay near one second on a laptop.
+ */
+export const STOCKFISH_LIMITS = { depth: 18, movetime: 650, playedDepth: 16, playedMovetime: 350, bookMovetime: 250 };
 
 const toWhite = (score: number, sideToMove: Color) => (sideToMove === "w" ? score : -score);
 
 export class MoveAnalyzer {
-  private stockfish: StockfishClient | null = null;
-  private internal: InternalEngine | null = null;
+  private deps: AnalyzerDeps | null;
 
-  constructor(private kind: AnalysisKind) {}
-
-  private sf(): StockfishClient {
-    return (this.stockfish ??= new StockfishClient());
+  constructor(private kind: AnalysisKind, deps?: AnalyzerDeps) {
+    this.deps = deps ?? null;
   }
 
-  private engine(): InternalEngine {
-    return (this.internal ??= new InternalEngine());
+  private engines(): AnalyzerDeps {
+    return (this.deps ??= workerDeps());
   }
 
   async rate(before: Position, move: Move, after: Position, deliversMate: boolean): Promise<MoveRating | null> {
@@ -44,41 +57,61 @@ export class MoveAnalyzer {
   }
 
   private async rateWithStockfish(before: Position, move: Move, after: Position, deliversMate: boolean): Promise<MoveRating | null> {
+    const { analyse } = this.engines();
     const mover = before.turn;
     const chess960 = before.rules.chess960;
-    const lines = await this.sf().analyse(toFen(before), { depth: 12, multipv: 2, chess960 });
-    if (!lines.length) return null;
-    const best = toWhite(lines[0].score, mover);
-    const second = lines[1] ? toWhite(lines[1].score, mover) : null;
-    const playedIsBest = lines[0].move === moveToUci(before, move);
-    let played = best;
-    if (!playedIsBest) {
-      const [reply] = await this.sf().analyse(toFen(after), { depth: 11, multipv: 1, chess960 });
-      if (!reply) return null;
-      played = toWhite(reply.score, after.turn);
+    const L = STOCKFISH_LIMITS;
+    if (!chess960 && !deliversMate) {
+      await loadBook();
+      if (isBookPosition(after)) {
+        const [line] = await analyse(toFen(after), { depth: L.playedDepth, movetime: L.bookMovetime, multipv: 1, chess960 });
+        return { rating: "book", evalCp: line ? toWhite(line.score, after.turn) : 0 };
+      }
     }
-    const rating = classifyMove({ mover, best, second, played, playedIsBest, deliversMate, sacrifice: isSacrifice(before, move, after) });
+    const fen = toFen(before);
+    const lines = await analyse(fen, { depth: L.depth, movetime: L.movetime, multipv: 2, chess960 });
+    if (!lines.length) return null;
+    const uci = moveToUci(before, move);
+    let playedLine = lines.find((l) => l.move === uci);
+    // Score the played move from the same position with searchmoves, so both
+    // numbers come from the same root and the same side's point of view.
+    playedLine ??= (await analyse(fen, { depth: L.playedDepth, movetime: L.playedMovetime, multipv: 1, chess960, searchmoves: [uci] }))[0];
+    if (!playedLine) return null;
+    const best = toWhite(lines[0].score, mover);
+    const played = toWhite(playedLine.score, mover);
+    const rating = classifyMove({
+      mover,
+      best,
+      second: lines[1] ? toWhite(lines[1].score, mover) : null,
+      played,
+      playedIsBest: lines[0].move === uci,
+      deliversMate,
+      ...moveFacts(before, move, after),
+    });
     return { rating, evalCp: played };
   }
 
   private async rateInternally(before: Position, move: Move, after: Position, deliversMate: boolean): Promise<MoveRating | null> {
-    const scores = await this.engine().scoreMoves(before, 3);
-    if (!scores?.length) return null;
-    const played = scores.find((s) => sameMove(s.move, move)) ?? scores[scores.length - 1];
-    const rating = classifyMove({
-      mover: before.turn,
-      best: scores[0].score,
-      second: scores[1]?.score ?? null,
-      played: played.score,
-      playedIsBest: sameMove(scores[0].move, move) || played.score === scores[0].score,
-      deliversMate,
-      sacrifice: isSacrifice(before, move, after),
-    });
-    return { rating, evalCp: played.score };
+    const { depth, ...limits } = INTERNAL_LIMITS;
+    const scores = await this.engines().search(before, depth, limits);
+    return scores ? rateFromScores(before, move, after, deliversMate, scores) : null;
   }
 
   dispose(): void {
-    this.stockfish?.dispose();
-    this.internal?.dispose();
+    this.deps?.dispose?.();
   }
+}
+
+/** Lazily started workers, so a variant game never loads Stockfish and the other way round. */
+function workerDeps(): AnalyzerDeps {
+  let sf: StockfishClient | null = null;
+  let internal: InternalEngine | null = null;
+  return {
+    search: (pos, depth, limits) => (internal ??= new InternalEngine()).scoreMoves(pos, depth, limits),
+    analyse: (fen, opts) => (sf ??= new StockfishClient()).analyse(fen, opts),
+    dispose: () => {
+      sf?.dispose();
+      internal?.dispose();
+    },
+  };
 }

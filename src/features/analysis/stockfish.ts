@@ -5,6 +5,17 @@
 
 import { MATE } from "./search";
 
+/** Limits for one analysis request. Depth and movetime both apply; whichever ends first wins. */
+export interface AnalyseOptions {
+  depth: number;
+  multipv: number;
+  chess960: boolean;
+  /** Milliseconds, so a slow laptop still answers in time. */
+  movetime?: number;
+  /** Only search these UCI moves, for scoring the move that was actually played. */
+  searchmoves?: string[];
+}
+
 export interface EngineLine {
   /** First move of the line in UCI notation. */
   move: string;
@@ -58,23 +69,31 @@ export class StockfishClient {
   }
 
   /** Analyse a FEN and return the top lines, best first. */
-  analyse(fen: string, opts: { depth: number; multipv: number; chess960: boolean }): Promise<EngineLine[]> {
+  analyse(fen: string, opts: AnalyseOptions): Promise<EngineLine[]> {
     const run = async () => {
       await this.ready;
       const lines = new Map<number, EngineLine>();
+      const send = (cmd: string) => this.worker.postMessage(cmd);
       await this.waitFor("readyok", () => {
-        this.worker.postMessage(`setoption name UCI_Chess960 value ${opts.chess960}`);
-        this.worker.postMessage(`setoption name MultiPV value ${opts.multipv}`);
-        this.worker.postMessage("isready");
+        send(`setoption name UCI_Chess960 value ${opts.chess960}`);
+        send(`setoption name MultiPV value ${opts.multipv}`);
+        // Full strength, even if someone shares this client with a bot later.
+        send("setoption name UCI_LimitStrength value false");
+        send("setoption name Skill Level value 20");
+        send("isready");
       });
+      let go = `go depth ${opts.depth}`;
+      if (opts.movetime) go += ` movetime ${Math.round(opts.movetime)}`;
+      if (opts.searchmoves?.length) go += ` searchmoves ${opts.searchmoves.join(" ")}`;
       await this.waitFor(
         "bestmove",
         () => {
-          this.worker.postMessage(`position fen ${fen}`);
-          this.worker.postMessage(`go depth ${opts.depth}`);
+          send(`position fen ${fen}`);
+          send(go);
         },
         (line) => {
-          if (!line.startsWith("info") || !line.includes(" score ")) return;
+          // Bound scores come from a failed aspiration window and are not real evaluations.
+          if (!line.startsWith("info") || !line.includes(" score ") || / (lower|upper)bound/.test(line)) return;
           const tokens = line.split(" ");
           const score = parseScore(tokens);
           // Mated or stalemated positions report a score with no pv at all.
