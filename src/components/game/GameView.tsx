@@ -56,6 +56,7 @@ export function GameView({ handle }: { handle: RoomHandle }) {
       taken={game.lost[opposite(c)]}
       materialEdge={v.material(c) - v.material(opposite(c))}
       isMe={me === c}
+      moveDeadline={room.moveDeadline}
       extra={pos.movesLeft > 1 && pos.turn === c && v.playing ? <span className={styles.movesLeft}>{pos.movesLeft} moves left</span> : null}
     />
   );

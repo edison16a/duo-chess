@@ -2,6 +2,7 @@ import { PIECES, type Color, type PieceKind } from "@/engine";
 import { PieceImage } from "@/components/board/PieceImage";
 import type { ClockState, Player } from "@/features/room/types";
 import { Clock } from "./Clock";
+import { MoveTimer } from "./MoveTimer";
 import styles from "./game.module.css";
 
 interface Props {
@@ -16,9 +17,11 @@ interface Props {
   materialEdge: number;
   isMe: boolean;
   extra?: React.ReactNode;
+  /** Host time when the per move timer plays a move for whoever is to move. */
+  moveDeadline?: number | null;
 }
 
-export function PlayerStrip({ player, color, turn, playing, clock, hostOffset, taken, materialEdge, isMe, extra }: Props) {
+export function PlayerStrip({ player, color, turn, playing, clock, hostOffset, taken, materialEdge, isMe, extra, moveDeadline }: Props) {
   const opponent = color === "w" ? "b" : "w";
   const sorted = [...taken].sort((a, b) => PIECES[b].value - PIECES[a].value);
   return (
@@ -34,6 +37,7 @@ export function PlayerStrip({ player, color, turn, playing, clock, hostOffset, t
         </span>
       </div>
       {extra}
+      {playing && turn === color && moveDeadline ? <MoveTimer deadline={moveDeadline} hostOffset={hostOffset} /> : null}
       {clock && <Clock clock={clock} color={color} turn={turn} running={playing} hostOffset={hostOffset} mine={isMe} />}
     </div>
   );

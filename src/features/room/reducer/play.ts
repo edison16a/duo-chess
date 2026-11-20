@@ -94,7 +94,11 @@ export function reducePlay(state: RoomState, action: PlayAction, ctx: ReduceCtx)
       if (state.moveDeadline !== null && ctx.now >= state.moveDeadline) {
         const move = randomMove(state, ctx);
         const id = state.seats[turn];
-        if (move && id) return applyMove(state, id, move, ctx);
+        if (move && id) {
+          const moved = applyMove(state, id, move, ctx);
+          // applyMove clears notices, so say why the piece moved after it.
+          return moved === state ? moved : notice(moved, id, "Out of time for that move, so one was played for you", ctx);
+        }
       }
       return state;
     }

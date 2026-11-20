@@ -232,3 +232,7 @@
   .moves { max-height: 240px; }
 }
 
+
+/* Per move countdown on the strip of whoever is to move. */
+.moveTimer { margin-left: auto; margin-right: 8px; padding: 3px 9px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); }
+.moveTimerLow { background: color-mix(in srgb, #e5484d 22%, transparent); border-color: #e5484d; color: #ff8a8d; }

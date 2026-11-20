@@ -52,14 +52,25 @@ describe("room reducer", () => {
     now += 1_500;
     room = run(room, { type: "tick" });
     expect(room.game!.history).toHaveLength(1);
+    expect(room.notice?.to).toBe("host");
+  });
+
+  it("never moves for anyone by default", () => {
+    let room = run(lobby(), { type: "start", id: "host" });
+    expect(room.clock).toBeNull();
+    expect(room.moveDeadline).toBeNull();
+    now += 600_000;
+    room = run(room, { type: "tick" });
+    expect(room.game!.history).toHaveLength(0);
   });
 
   it("runs the superpower draft before play", () => {
     let room = run(lobby({ mode: "superpowers" }), { type: "start", id: "host" });
     expect(room.phase).toBe("draft");
-    for (let i = 0; i < 4; i++) {
-      const id = room.draft!.turn === "w" ? "host" : "guest";
-      room = run(room, { type: "draft", id, picks: [room.draft!.options[0]] });
+    // Both draft at once: two Take & give picks each fill both hands to four.
+    for (let i = 0; i < 2; i++) {
+      room = run(room, { type: "draft", id: "guest", picks: [room.draft!.options.b[0]] });
+      room = run(room, { type: "draft", id: "host", picks: [room.draft!.options.w[0]] });
     }
     expect(room.phase).toBe("playing");
     expect(room.game!.powers!.inventory.w).toHaveLength(4);
