@@ -17,7 +17,7 @@ interface Props {
   aimColor: string | null;
 }
 
-export function UnderLayer({ pos, orientation, viewer, lastMove, selected, checkSquares }: Props) {
+export function UnderLayer({ pos, orientation, lastMove, selected, checkSquares }: Props) {
   const at = (s: number) => cellStyle(pos, s, orientation);
   return (
     <>
@@ -26,10 +26,6 @@ export function UnderLayer({ pos, orientation, viewer, lastMove, selected, check
       {selected !== null && <div className={`${styles.cell} ${styles.selected}`} style={at(selected)} />}
       {checkSquares.map((s) => <div key={`c${s}`} className={`${styles.cell} ${styles.check}`} style={at(s)} />)}
       {pos.holes.map((s) => <div key={`h${s}`} className={`${styles.cell} ${styles.hole}`} style={at(s)} />)}
-      {pos.effects.map((e) => {
-        if (e.kind === "mine" && viewer !== e.owner) return null;
-        return <div key={`e${e.id}`} className={`${styles.cell} ${styles[e.kind]}`} style={at(e.square)} title={e.kind} />;
-      })}
     </>
   );
 }

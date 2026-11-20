@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { FILES, positionKey, type Color, type GameEvent, type Move, type PieceKind, type Position, type RatingId } from "@/engine";
 import { ArrowLayer, MarkLayer, PremoveLayer } from "./Annotations";
 import { Effects } from "./Effects";
+import { FxCanvas } from "./FxCanvas";
 import { cellOf, cellStyle, isLightSquare } from "./layout";
 import { FogLayer, HintLayer, UnderLayer } from "./Overlays";
 import { PieceLayer } from "./PieceLayer";
@@ -62,6 +63,7 @@ export function Board(props: BoardProps) {
   }, [targeting, pos]);
 
   return (
+    <div className={styles.outer}>
     <div
       ref={ref}
       className={`${styles.board} ${shaking ? styles.shake : ""}`}
@@ -98,8 +100,10 @@ export function Board(props: BoardProps) {
       <HintLayer {...props} selected={ui.selected} targets={new Set(ui.targets.keys())} duckSquares={ui.duckSquares} aimSquares={aimSquares} aimColor={targeting?.color ?? null} />
       <FogLayer pos={pos} orientation={orientation} visible={visible} />
       <ArrowLayer pos={pos} orientation={orientation} arrows={notes.arrows} drawing={notes.drawing} />
-      <Effects pos={pos} orientation={orientation} events={props.events} seq={props.eventSeq} onShake={() => { setShaking(true); setTimeout(() => setShaking(false), 450); }} />
+      <Effects events={props.events} seq={props.eventSeq} onShake={() => { setShaking(true); setTimeout(() => setShaking(false), 450); }} />
       {ui.promotion && <PromotionPicker moves={ui.promotion.moves} color={pos.turn} onPick={ui.choosePromotion} />}
+    </div>
+    <FxCanvas pos={pos} orientation={orientation} viewer={viewer} events={props.events} seq={props.eventSeq} rating={props.rating} />
     </div>
   );
 }
