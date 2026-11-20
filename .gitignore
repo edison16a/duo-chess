@@ -10,3 +10,4 @@ public/engine
 test-results
 playwright-report
 .DS_Store
+AGENTS.md
