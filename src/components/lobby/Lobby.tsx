@@ -8,7 +8,7 @@ import type { RoomHandle } from "@/features/room/useRoom";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/icons";
 import { MapPicker } from "./MapPicker";
-import { ModeGrid } from "./ModeGrid";
+import { ModePicker } from "./ModePicker";
 import { ModsPanel } from "./ModsPanel";
 import { PlayersCard } from "./PlayersCard";
 import styles from "./lobby.module.css";
@@ -69,7 +69,7 @@ export function Lobby({ handle, side }: { handle: RoomHandle; side?: ReactNode }
       <main className={`${styles.main} scroll-thin`}>
         <section className={styles.section}>
           <h2>Mode</h2>
-          <ModeGrid value={room.config.mode} disabled={!isHost} onChange={(id) => handle.send({ type: "config", config: { mode: id } })} />
+          <ModePicker value={room.config.mode} disabled={!isHost} onChange={(id) => handle.send({ type: "config", config: { mode: id } })} />
           <ul className={styles.howTo}>
             {mode.howTo.map((line) => <li key={line}>{line}</li>)}
           </ul>

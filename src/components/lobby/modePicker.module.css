@@ -1,0 +1,43 @@
+.picker { display: flex; flex-direction: column; gap: 14px; }
+.bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  max-width: 320px;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 11px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+.search:focus-within { border-color: var(--accent); }
+.search input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; font-size: 14px; color: var(--text); }
+.nav { display: flex; align-items: center; gap: 6px; }
+.count { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; margin-right: 4px; }
+.nav button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+.nav button:hover:not(:disabled) { background: var(--surface-2); }
+.nav button:disabled { opacity: 0.4; cursor: default; }
+
+.row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; animation: slide 0.35s cubic-bezier(0.2, 0.8, 0.3, 1); }
+.empty { grid-column: 1 / -1; padding: 40px 0; text-align: center; color: var(--faint); font-size: 14px; }
+
+.dots { display: flex; justify-content: center; gap: 6px; }
+.dots button { width: 7px; height: 7px; padding: 0; border: 0; border-radius: 99px; background: var(--surface-3); cursor: pointer; transition: width 0.2s, background 0.2s; }
+.dots .dotOn { width: 20px; background: var(--accent); }
+
+@keyframes slide { from { opacity: 0; translate: 12px 0; } }
+
+@media (max-width: 1100px) { .row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
