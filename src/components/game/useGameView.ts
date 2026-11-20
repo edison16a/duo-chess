@@ -71,7 +71,7 @@ export function useGameView(handle: RoomHandle) {
     const ctx = { pos, color: me, enemy: opposite(me), lost: game.lost, squares: aiming.squares };
     return {
       color: RARITY_COLOR[def.rarity],
-      valid: (s: number) => step.valid(ctx, s),
+      valid: (s: number) => !aiming.squares.includes(s) && step.valid(ctx, s),
       onPick: (s: number) => {
         const squares = [...aiming.squares, s];
         if (squares.length === def.targets.length) firePower(aiming.power, squares);

@@ -43,7 +43,7 @@ export function HintLayer({ pos, orientation, targets, duckSquares, aimSquares, 
       ))}
       {[...duckSquares].map((s) => <div key={`d${s}`} className={`${styles.cell} ${styles.duckHint}`} style={at(s)} />)}
       {[...aimSquares].map((s) => (
-        <div key={`a${s}`} className={`${styles.cell} ${styles.aimHint}`} style={{ ...at(s), ["--aim" as string]: aimColor ?? "var(--accent)" }} />
+        <div key={`a${s}`} data-aim={s} className={`${styles.cell} ${styles.aimHint}`} style={{ ...at(s), ["--aim" as string]: aimColor ?? "var(--accent)" }} />
       ))}
     </>
   );
