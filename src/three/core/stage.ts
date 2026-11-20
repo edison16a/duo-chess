@@ -9,6 +9,7 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { BokehPass } from "three/examples/jsm/postprocessing/BokehPass.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 
 export interface StageOptions {
@@ -18,6 +19,8 @@ export interface StageOptions {
   shadows?: boolean;
   background?: THREE.ColorRepresentation | null;
   pixelRatio?: number;
+  /** Depth of field for cinematic shots: focus distance in world units and blur strength. */
+  dof?: { focus: number; aperture: number; maxblur: number };
 }
 
 export interface Stage {
@@ -27,6 +30,8 @@ export interface Stage {
   composer: EffectComposer | null;
   key: THREE.DirectionalLight;
   resize: (width: number, height: number) => void;
+  /** Moves the depth of field focus, for shots that track a subject. */
+  setFocus: (distance: number) => void;
   render: () => void;
   dispose: () => void;
 }
@@ -64,11 +69,18 @@ export function createStage(o: StageOptions): Stage {
 
   let composer: EffectComposer | null = null;
   let bloomPass: UnrealBloomPass | null = null;
-  if (o.bloom && !o.alpha) {
+  let bokeh: BokehPass | null = null;
+  if ((o.bloom || o.dof) && !o.alpha) {
     composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
-    bloomPass = new UnrealBloomPass(new THREE.Vector2(256, 256), o.bloom, 0.5, 1.05);
-    composer.addPass(bloomPass);
+    if (o.dof) {
+      bokeh = new BokehPass(scene, camera, { focus: o.dof.focus, aperture: o.dof.aperture, maxblur: o.dof.maxblur });
+      composer.addPass(bokeh);
+    }
+    if (o.bloom) {
+      bloomPass = new UnrealBloomPass(new THREE.Vector2(256, 256), o.bloom, 0.5, 1.05);
+      composer.addPass(bloomPass);
+    }
     composer.addPass(new OutputPass());
   }
 
@@ -80,6 +92,9 @@ export function createStage(o: StageOptions): Stage {
       bloomPass?.resolution.set(w, h);
       camera.aspect = w / Math.max(1, h);
       camera.updateProjectionMatrix();
+    },
+    setFocus: (distance) => {
+      if (bokeh) (bokeh.uniforms as Record<string, { value: number }>).focus.value = distance;
     },
     render: () => (composer ? composer.render() : renderer.render(scene, camera)),
     dispose: () => {

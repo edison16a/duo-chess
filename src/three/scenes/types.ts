@@ -14,6 +14,8 @@ export interface SceneDef {
   /** Loop length in seconds for rendered clips. */
   duration: number;
   bloom?: number;
+  /** Depth of field for cinematic stills and previews. */
+  dof?: { focus: number; aperture: number; maxblur: number };
   /** Best moment (seconds) for a still poster of this scene. */
   poster?: number;
   setup: (stage: Stage) => Promise<SceneInstance>;

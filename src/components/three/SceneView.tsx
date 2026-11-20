@@ -37,7 +37,7 @@ export function SceneView({ load, capture = false, className, onReady }: Props) 
     (async () => {
       const def = await load();
       if (disposed) return;
-      const stage = createStage({ canvas, bloom: def.bloom ?? 0.35, pixelRatio: capture ? 1 : undefined });
+      const stage = createStage({ canvas, bloom: def.bloom ?? 0.35, dof: def.dof, pixelRatio: capture ? 1 : undefined });
       const fit = () => stage.resize(canvas.clientWidth, canvas.clientHeight);
       fit();
       const instance = await def.setup(stage);
