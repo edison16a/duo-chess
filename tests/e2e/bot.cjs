@@ -21,9 +21,9 @@ async function myColor(page) {
   return white ? "w" : "b";
 }
 
-async function myTurn(page, me) {
-  const cls = (await page.getByTestId(`clock-${me}`).getAttribute("class")) || "";
-  return cls.includes("clockActive");
+/** Reads the turn off the player strips, which light up for the side to move with or without a clock. */
+async function myTurn(page) {
+  return (await page.locator('[class*="stripTurn"]').filter({ hasText: "You" }).count()) > 0;
 }
 
 /** Clicks squares until one shows move hints, then plays a random hinted move. */
@@ -50,7 +50,7 @@ async function play(page, turns) {
   const me = await myColor(page);
   let played = 0, since = Date.now(), waiting = false;
   while (played < turns && !(await page.getByTestId("result").count())) {
-    if (await myTurn(page, me)) {
+    if (await myTurn(page)) {
       if (waiting) {
         const ms = Date.now() - since;
         if (ms > MAX_REPLY_MS) throw new Error(`bot took ${ms} ms`);
@@ -85,7 +85,7 @@ async function play(page, turns) {
     console.log("classic as", me, "moves:", (await page.getByTestId("move-list").innerText()).replace(/\s+/g, " "));
 
     // Offer on our own turn so only the bot's answer can clear it.
-    while (!(await myTurn(page, me))) await page.waitForTimeout(60);
+    while (!(await myTurn(page))) await page.waitForTimeout(60);
     await page.getByRole("button", { name: "Draw" }).click();
     await page.getByRole("button", { name: "Offered" }).waitFor();
     await page.getByRole("button", { name: "Draw" }).waitFor({ timeout: 5000 });
@@ -96,12 +96,16 @@ async function play(page, turns) {
     await page.getByTestId("result").waitFor();
     await page.getByTestId("result").getByRole("button", { name: /Rematch/ }).click();
     await page.getByTestId("result").waitFor({ state: "detached", timeout: 5000 });
+    // The board flips with the new game; give it a moment instead of reading the very first frame.
+    for (let i = 0; i < 50 && (await myColor(page)) === me; i++) await page.waitForTimeout(100);
     if ((await myColor(page)) === me) throw new Error("rematch should swap colors");
     await play(page, 2);
     console.log("rematch ok");
 
     await page.getByRole("button", { name: "Resign" }).click();
     await page.getByRole("button", { name: "Confirm" }).click();
+    // The results cover the page, so close them to reach the bot panel.
+    await page.getByTestId("result").getByRole("button", { name: "View board" }).first().click();
     await page.getByTestId("bot-new-game").click();
     await pickMode(page, "double");
     await page.getByTestId("start").click();
