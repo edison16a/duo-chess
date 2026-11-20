@@ -56,7 +56,7 @@ async function modeClip(page, id) {
 async function powerPoster(page, id) {
   const fps = 24;
   const file = path.join(TMP, `power-${id}.png`);
-  await page.setViewportSize({ width: 480, height: 300 });
+  await page.setViewportSize({ width: 720, height: 450 });
   await page.goto(`${BASE}/render?scene=power:${id}&capture=1`);
   await page.waitForFunction(() => window.__sceneReady, null, { timeout: 120000 });
   // Each scene says when it looks best; step there frame by frame so effects simulate properly.
