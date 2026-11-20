@@ -60,7 +60,7 @@ export const MODE_SCENES: Record<string, () => SceneDef> = {
       cue(1.0, (d) => { d.move("d2", "d4", 0.3); d.fx(new SpeedLines(), "d4"); }),
       cue(2.5, (d) => { d.move("e7", "e5", 0.3); d.fx(new SpeedLines(), "e5"); }),
       cue(3.0, (d) => { d.move("d7", "d5", 0.3); d.fx(new SpeedLines(), "d5"); }),
-      cue(4.5, (d) => { d.move("e4", "d5", 0.3); d.kill("d7"); d.fx(new CapturePuff(), "d5"); }),
+      cue(4.5, (d) => { d.move("e2", "d5", 0.3); d.kill("d7"); d.fx(new CapturePuff(), "d5"); }),
       cue(5.0, (d) => { d.move("g1", "f3", 0.3, 0.5); d.fx(new SpeedLines(), "f3"); }),
     ],
   }),
