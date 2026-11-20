@@ -1,0 +1,53 @@
+.card {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 11;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #111316;
+  cursor: pointer;
+  text-align: left;
+  color: #fff;
+  isolation: isolate;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+.card:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.16), 0 16px 34px rgba(0, 0, 0, 0.45); }
+.card:disabled { cursor: default; filter: saturate(0.6) brightness(0.7); }
+.active { box-shadow: 0 0 0 2px var(--accent), 0 16px 34px rgba(0, 0, 0, 0.45); }
+
+.media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; transform: scale(1.02); transition: transform 0.6s ease; }
+.card:hover .media { transform: scale(1.07); }
+
+/* Darkens only the lower part so the title stays readable over any frame. */
+.shade { position: absolute; inset: 0; z-index: -1; background: linear-gradient(to top, rgba(6, 7, 9, 0.92) 0%, rgba(6, 7, 9, 0.55) 34%, rgba(6, 7, 9, 0) 62%); }
+
+.meta { position: absolute; left: 14px; right: 14px; bottom: 12px; display: flex; flex-direction: column; gap: 3px; }
+.title { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 700; letter-spacing: -0.01em; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6); }
+.title svg { flex-shrink: 0; color: #fff; }
+.blurb { font-size: 12.5px; line-height: 1.35; color: rgba(255, 255, 255, 0.78); }
+
+.check {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+.check::after {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 4px;
+  width: 6px;
+  height: 11px;
+  border: solid var(--accent-ink);
+  border-width: 0 2.5px 2.5px 0;
+  rotate: 45deg;
+}
