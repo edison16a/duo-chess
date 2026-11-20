@@ -1,3 +1,4 @@
+import { RatingGlyph } from "@/components/ui/RatingGlyph";
 import { RATINGS } from "@/features/analysis";
 import { opposite, type Color, type Position, type RatingId } from "@/engine";
 import { cellStyle } from "./layout";
@@ -53,7 +54,7 @@ export function PieceLayer({ pos, orientation, viewer, visible, blindfold, drag,
             <img src={pieceSrc(piece.kind, piece.color)} alt={piece.kind} draggable={false} />
             {rated && (
               <span key={rated.key} className={fx.badge} style={{ background: RATINGS[rated.id].color }} title={RATINGS[rated.id].label}>
-                {RATINGS[rated.id].glyph}
+                <RatingGlyph id={rated.id} />
               </span>
             )}
           </div>

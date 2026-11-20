@@ -1,5 +1,6 @@
 "use client";
 
+import { RatingGlyph } from "@/components/ui/RatingGlyph";
 import { useEffect, useRef } from "react";
 import type { Color, HistoryEntry } from "@/engine";
 import { RATINGS } from "@/features/analysis";
@@ -27,7 +28,7 @@ function Entry({ entry, showRatings, hidden }: { entry: HistoryEntry; showRating
     <span className={styles.san}>
       {letter && <PieceImage kind={entry.kind} color={entry.color} className={styles.figurine} />}
       {letter ? entry.san.slice(1) : entry.san}
-      {rating && <span className={styles.rateGlyph} style={{ color: rating.color }} title={rating.label}>{rating.glyph}</span>}
+      {rating && <span className={styles.rateGlyph} style={{ color: rating.color }} title={rating.label}><RatingGlyph id={rating.id} size={11} /></span>}
     </span>
   );
 }

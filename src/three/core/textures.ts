@@ -146,6 +146,22 @@ export function woodTexture(): THREE.Texture {
 }
 
 /** Text drawn into a texture, for floating rating badges. */
+/** Stands in for the book rating's glyph, which is drawn as lines rather than text. */
+export const BOOK_GLYPH = "book";
+
+/** An open book in white strokes, the same shape as the 2D badge icon. */
+function drawBook(ctx: CanvasRenderingContext2D, s: number): void {
+  const k = s / 24;
+  ctx.save();
+  ctx.scale(k, k);
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 2.2;
+  ctx.lineJoin = "round";
+  ctx.stroke(new Path2D("M12 7.2C10.2 5.9 7.6 5.4 4.6 5.8v11.2c3-.4 5.6 0 7.4 1.3 1.8-1.3 4.4-1.7 7.4-1.3V5.8C16.4 5.4 13.8 5.9 12 7.2z"));
+  ctx.stroke(new Path2D("M12 7.2v11.1"));
+  ctx.restore();
+}
+
 export function badgeTexture(glyph: string, color: string): THREE.Texture {
   return canvasTexture(`badge:${glyph}:${color}`, 128, (ctx, s) => {
     ctx.fillStyle = color;
@@ -155,6 +171,10 @@ export function badgeTexture(glyph: string, color: string): THREE.Texture {
     ctx.lineWidth = 7;
     ctx.strokeStyle = "#ffffff";
     ctx.stroke();
+    if (glyph === BOOK_GLYPH) {
+      drawBook(ctx, s);
+      return;
+    }
     ctx.fillStyle = "#ffffff";
     ctx.font = `800 ${glyph.length > 2 ? 40 : 52}px ui-sans-serif, system-ui, sans-serif`;
     ctx.textAlign = "center";

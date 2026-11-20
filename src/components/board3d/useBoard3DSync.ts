@@ -6,6 +6,7 @@
  * its own inputs change.
  */
 
+import { BOOK_GLYPH } from "@/three/core/textures";
 import { useEffect, useMemo, type RefObject } from "react";
 import { opposite, type Color, type Move, type Position } from "@/engine";
 import { RATINGS } from "@/features/analysis";
@@ -82,6 +83,6 @@ export function useBoard3DSync(scene: RefObject<BoardScene | null>, ready: boole
     if (!ready) return;
     const r = props.rating;
     scene.current!.lite = props.fx === "low";
-    scene.current!.setRating(r ? { ...r, glyph: RATINGS[r.id].glyph, color: RATING_HEX[r.id] } : null);
+    scene.current!.setRating(r ? { ...r, glyph: r.id === "book" ? BOOK_GLYPH : RATINGS[r.id].glyph, color: RATING_HEX[r.id] } : null);
   }, [ready, scene, props.rating?.key]); // eslint-disable-line react-hooks/exhaustive-deps
 }
