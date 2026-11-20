@@ -37,7 +37,7 @@ export function GameView({ handle }: { handle: RoomHandle }) {
   if (room.phase === "draft" && room.draft) {
     return (
       <div className={styles.draftScreen}>
-        <DraftPanel draft={room.draft} me={me} players={players} onPick={(keep, give) => handle.send({ type: "draft", keep, give })} />
+        <DraftPanel draft={room.draft} me={me} players={players} onPick={(picks) => handle.send({ type: "draft", picks })} />
       </div>
     );
   }

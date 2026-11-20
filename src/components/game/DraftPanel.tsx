@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import type { Color } from "@/engine";
 import type { DraftState } from "@/features/powers";
 import type { Player } from "@/features/room/types";
-import { Button } from "@/components/ui/Button";
+import { DeckBuilder } from "./DeckBuilder";
+import { OfferPicker } from "./OfferPicker";
 import { PowerCard } from "./PowerCard";
 import styles from "./powers.module.css";
 
@@ -12,68 +12,40 @@ interface Props {
   draft: DraftState;
   me: Color | null;
   players: Record<Color, Player | undefined>;
-  onPick: (keep: string, give: string) => void;
+  onPick: (picks: string[]) => void;
 }
 
-/** Keep one, give one, the third is crossed out. */
+/**
+ * The draft screen. Offer styles show a few cards per turn, Free Deck lets
+ * both players build a hand at once. Either way both hands sit underneath,
+ * except an opponent's deck stays hidden until it is locked in.
+ */
 export function DraftPanel({ draft, me, players, onPick }: Props) {
-  const [keep, setKeep] = useState<string | null>(null);
-  const [give, setGive] = useState<string | null>(null);
-  const myTurn = me === draft.turn;
-  const round = draft.log.length + 1;
-
-  const choose = (id: string) => {
-    if (!myTurn) return;
-    if (keep === id) setKeep(null);
-    else if (give === id) setGive(null);
-    else if (!keep) setKeep(id);
-    else if (!give) setGive(id);
-  };
-
-  const confirm = () => {
-    if (keep && give) onPick(keep, give);
-    setKeep(null);
-    setGive(null);
-  };
-
-  const crossed = keep && give ? draft.options.find((o) => o !== keep && o !== give) : null;
-  const drafter = players[draft.turn]?.name ?? "Opponent";
+  const deck = draft.style === "deck";
+  const name = (c: Color) => players[c]?.name ?? (c === "w" ? "White" : "Black");
 
   return (
-    <div className={styles.draft} data-testid="draft">
-      <div className={styles.draftHead}>
-        <span className={styles.draftRound}>Pick {round} of {draft.total}</span>
-        <h2>{myTurn ? (keep ? (give ? "Ready" : "Now pick one to give away") : "Pick one to keep") : `${drafter} is drafting`}</h2>
-      </div>
-      <div className={styles.options}>
-        {draft.options.map((id) => (
-          <PowerCard
-            key={id}
-            id={id}
-            size="lg"
-            active={keep === id || give === id}
-            crossed={crossed === id}
-            tag={keep === id ? "Keep" : give === id ? "Give" : undefined}
-            disabled={!myTurn}
-            onClick={() => choose(id)}
-          />
-        ))}
-      </div>
-      {myTurn && (
-        <div className={styles.draftActions}>
-          <Button variant="ghost" onClick={() => { setKeep(null); setGive(null); }} disabled={!keep}>Reset</Button>
-          <Button variant="primary" onClick={confirm} disabled={!keep || !give} data-testid="draft-confirm">Confirm</Button>
-        </div>
+    <div className={`${styles.draft} ${deck ? styles.draftWide : ""}`} data-testid="draft">
+      {deck ? (
+        <DeckBuilder draft={draft} me={me} opponent={me ? name(me === "w" ? "b" : "w") : "Players"} onLock={onPick} />
+      ) : (
+        <OfferPicker draft={draft} me={me} drafter={name(draft.turn)} onPick={(id) => onPick([id])} />
       )}
       <div className={styles.hands}>
-        {(["w", "b"] as Color[]).map((c) => (
-          <div key={c} className={styles.hand}>
-            <span className={styles.barTitle}>{players[c]?.name ?? (c === "w" ? "White" : "Black")}</span>
-            <div className={styles.grid}>
-              {draft.inventory[c].map((id, i) => <PowerCard key={`${id}${i}`} id={id} size="sm" disabled />)}
+        {(["w", "b"] as Color[]).map((c) => {
+          const hidden = deck && c !== me && !draft.locked[c];
+          return (
+            <div key={c} className={styles.hand}>
+              <span className={styles.barTitle}>
+                {name(c)}
+                {deck && <span className={draft.locked[c] ? styles.ready : styles.building}>{draft.locked[c] ? "Ready" : "Building"}</span>}
+              </span>
+              <div className={styles.grid}>
+                {hidden ? null : draft.inventory[c].map((id, i) => <PowerCard key={`${id}${i}`} id={id} size="sm" disabled />)}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
