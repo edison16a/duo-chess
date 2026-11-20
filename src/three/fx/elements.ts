@@ -24,7 +24,7 @@ export class FrostBurst extends FxBase {
     }
     this.object.add(this.shards);
     const snow = this.particles({ capacity: 120, texture: sparkTexture(), drag: 1.8, gravity: 0.25 });
-    snow.emit({ count: 90, position: v3(0, 0.6, 0), spread: v3(0.4, 0.5, 0.4).multiplyScalar(radius), radial: 1.4 * radius, life: [0.8, 1.5], size: [0.08, 0.2], colors: ["#ffffff", "#c9ecff", "#8fd3ff"] });
+    snow.emit({ count: 55, position: v3(0, 0.6, 0), spread: v3(0.4, 0.5, 0.4).multiplyScalar(radius), radial: 1.4 * radius, life: [0.8, 1.5], size: [0.08, 0.2], colors: ["#ffffff", "#c9ecff", "#8fd3ff"] });
     const mist = this.particles({ capacity: 30, texture: smokeTexture(), drag: 1.5, grow: 2.2 });
     mist.emit({ count: 9, position: v3(0, 0.3, 0), spread: v3(0.3, 0.1, 0.3), radial: 0.8 * radius, life: [0.8, 1.4], size: [0.35, 0.6], colors: ["#8fc8ee"] });
     this.ring = groundRing(this, "#9adcff", (t) => this.own(t));

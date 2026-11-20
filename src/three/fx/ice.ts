@@ -47,7 +47,7 @@ function collar(radius: number, y: number): THREE.BufferGeometry {
 export function iceMaterial(): THREE.MeshPhysicalMaterial {
   return new THREE.MeshPhysicalMaterial({
     color: 0xd6f1ff, roughness: 0.06, metalness: 0.05, clearcoat: 1, clearcoatRoughness: 0.05,
-    transparent: true, opacity: 0.55, emissive: 0x4fb3ff, emissiveIntensity: 0.18, side: THREE.DoubleSide, depthWrite: false,
+    transparent: true, opacity: 0.5, emissive: 0x4fb3ff, emissiveIntensity: 0.18, side: THREE.DoubleSide, depthWrite: false,
   });
 }
 
@@ -59,8 +59,10 @@ export class IceEncase extends FxBase {
     super(-1);
     const mat = this.own(iceMaterial());
     const crystals: THREE.BufferGeometry[] = [];
-    for (let i = 0; i < 9; i++) {
-      const a = (i / 9) * Math.PI * 2 + 0.3;
+    for (let i = 0; i < 11; i++) {
+      const a = (i / 11) * Math.PI * 2 + 0.3;
+      // Leave the side facing the viewer open so the frozen piece still reads.
+      if (Math.cos(a) * 0.45 + Math.sin(a) * 0.9 > 0.45) continue;
       const h = pieceHeight * (0.45 + Math.abs(Math.sin(i * 1.9)) * 0.55);
       const g = crystal(h, 0.07 + Math.abs(Math.cos(i * 1.3)) * 0.04);
       g.rotateZ(Math.sin(i * 2.1) * 0.28);
@@ -71,20 +73,20 @@ export class IceEncase extends FxBase {
     const cluster = new THREE.Mesh(mergeGeometries(crystals)!, mat);
     cluster.geometry.computeVertexNormals();
     const neck = new THREE.Mesh(collar(0.27, pieceHeight * 0.8), mat);
-    const frost = new THREE.Mesh(new THREE.CircleGeometry(0.55, 40), this.own(new THREE.MeshBasicMaterial({ map: glowTexture(), color: 0xcdeeff, transparent: true, opacity: 0.55, depthWrite: false })));
+    const frost = new THREE.Mesh(new THREE.CircleGeometry(0.55, 40), this.own(new THREE.MeshBasicMaterial({ map: glowTexture(), color: 0xcdeeff, transparent: true, opacity: 0.28, depthWrite: false })));
     frost.rotation.x = -Math.PI / 2;
     frost.position.y = 0.015;
     this.shell.add(cluster, neck, frost);
     this.object.add(this.shell);
     this.glints = this.particles({ capacity: 40, texture: sparkTexture(), drag: 0.5 });
-    const halo = this.glow("#9adcff", pieceHeight * 1.6, 0.35);
+    const halo = this.glow("#9adcff", pieceHeight * 1.3, 0.14);
     halo.position.y = pieceHeight * 0.5;
   }
 
   protected step(_dt: number, _k: number): void {
     const grow = Math.min(1, this.age * 3);
     this.shell.scale.set(1, grow, 1);
-    if (Math.random() < 0.25) {
+    if (Math.random() < 0.12) {
       this.glints.emit({ count: 1, position: v3(0, this.pieceHeight * 0.6, 0), spread: v3(0.35, this.pieceHeight * 0.45, 0.35), velocity: v3(0, 0.1, 0), life: [0.5, 1.1], size: [0.06, 0.13], colors: ["#ffffff", "#bfe8ff"] });
     }
   }
