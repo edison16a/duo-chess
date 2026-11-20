@@ -4,7 +4,7 @@
  */
 
 import { MoveAnalyzer } from "@/features/analysis";
-import { MODE_BY_ID } from "@/features/modes";
+import { analysisFor } from "@/features/modes";
 import { reduceRoom } from "./reducer";
 import type { RoomAction, RoomState } from "./types";
 
@@ -67,10 +67,12 @@ export class HostController {
     if (!before || !after || after.history.length !== before.history.length + 1) return;
     const entry = after.history[after.history.length - 1];
     if (entry.power) return;
-    if (this.analyzerMode !== next.config.mode) {
+    // Keyed by mode and engine: the same mode on a map needs our own search instead of Stockfish.
+    const analyzerKey = `${next.config.mode}:${analysisFor(next.config)}`;
+    if (this.analyzerMode !== analyzerKey) {
       this.analyzer?.dispose();
-      this.analyzer = new MoveAnalyzer(MODE_BY_ID[next.config.mode].analysis);
-      this.analyzerMode = next.config.mode;
+      this.analyzer = new MoveAnalyzer(analysisFor(next.config));
+      this.analyzerMode = analyzerKey;
     }
     // Any move that wins on the spot (mate, an exploded king, the hill) counts as legendary.
     const deliversMate = !!after.result && after.result.winner === entry.color;

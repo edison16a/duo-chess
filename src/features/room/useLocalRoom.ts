@@ -8,7 +8,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BOT_ID, BotBrain, BotEngines, BotPlayer, botName } from "@/features/bot";
-import { MODE_BY_ID, type GameConfig } from "@/features/modes";
+import { MODE_BY_ID, analysisFor, type GameConfig } from "@/features/modes";
 import { HostController, LOCAL_CHANNEL } from "./host";
 import { clientId, playerName } from "./identity";
 import { createRoom } from "./reducer";
@@ -42,7 +42,7 @@ export function useLocalRoom(elo: number): LocalRoomHandle {
     const host = new HostController(initial, LOCAL_CHANNEL, (state) => {
       configRef.current = state.config;
       setRoom(state);
-      engines.warm(MODE_BY_ID[state.config.mode].analysis);
+      engines.warm(analysisFor(state.config));
       bot?.observe(state);
     });
     bot = new BotPlayer(

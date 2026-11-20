@@ -36,6 +36,12 @@ export function quickMove(pos: Position, legal: Move[], random: () => number): M
   return randomItem(legal, random);
 }
 
+/** The 8x8 board with only the six classic pieces and no holes, the only game Stockfish knows. */
+function plainBoard(pos: Position): boolean {
+  const classic = new Set(["king", "queen", "rook", "bishop", "knight", "pawn"]);
+  return pos.width === 8 && pos.height === 8 && !pos.holes.length && pos.board.every((p) => !p || classic.has(p.kind));
+}
+
 export class BotBrain {
   constructor(private deps: BrainDeps, private random: () => number = Math.random) {}
 
@@ -46,7 +52,8 @@ export class BotBrain {
     if (!legal.length) return null;
     let move: Move | null = null;
     try {
-      move = MODE_BY_ID[mode].analysis === "stockfish" && this.deps.bestMove
+      // A Stockfish mode played on a map is no longer plain chess, so the board shape decides too.
+      move = MODE_BY_ID[mode].analysis === "stockfish" && plainBoard(pos) && this.deps.bestMove
         ? await this.stockfishMove(pos, legal, elo, plan)
         : await this.searchMove(pos, elo, plan);
     } catch {

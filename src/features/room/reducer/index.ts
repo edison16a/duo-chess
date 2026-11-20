@@ -4,8 +4,7 @@
  * makes the whole multiplayer flow testable without a network.
  */
 
-import { DEFAULT_MODS } from "@/features/modes";
-import { PREMADE_MAPS } from "@/features/maps";
+import { DEFAULT_MODS, STANDARD_MAP } from "@/features/modes";
 import type { ReduceCtx, RoomAction, RoomState } from "../types";
 import { cleanName } from "./helpers";
 import { reduceLobby } from "./lobby";
@@ -20,7 +19,7 @@ export function createRoom(code: string, hostId: string, hostName: string, now: 
     players: [{ id: hostId, name: cleanName(hostName), online: true }],
     seats: { w: null, b: null },
     phase: "lobby",
-    config: { mode: "classic", mods: DEFAULT_MODS, mapId: PREMADE_MAPS[0].id, customMap: null, hostColor: "random", draftStyle: "split", powersEach: 4 },
+    config: { mode: "classic", mods: DEFAULT_MODS, mapId: STANDARD_MAP, customMap: null, hostColor: "random", draftStyle: "split", powersEach: 4 },
     draft: null,
     game: null,
     clock: null,
