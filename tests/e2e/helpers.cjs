@@ -56,6 +56,17 @@ async function pickMode(page, id) {
   throw new Error(`Mode ${id} not found`);
 }
 
+/** Clicks one option of a lobby setting row by its label. */
+async function setOption(page, testId, label) {
+  await page.getByTestId(testId).getByRole("button", { name: label, exact: true }).click();
+}
+
+/** Clicks a square on the 3D board through the scene's own projection. */
+async function click3d(page, square) {
+  const pt = await page.evaluate((s) => document.querySelector('[data-testid="board3d"] canvas').__scene.screenOf(s), square);
+  await page.mouse.click(pt.x, pt.y);
+}
+
 const sq = (name) => (Number(name[1]) - 1) * 8 + "abcdefgh".indexOf(name[0]);
 
-module.exports = { launch, hostAndJoin, move, sq, pickMode, BASE };
+module.exports = { launch, hostAndJoin, move, sq, pickMode, setOption, click3d, BASE };
