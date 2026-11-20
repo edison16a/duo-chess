@@ -1,0 +1,125 @@
+.lobby {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 24px;
+  height: calc(100dvh - 64px);
+  padding: 20px 24px;
+}
+.side { display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+.main { overflow-y: auto; display: flex; flex-direction: column; gap: 28px; padding-right: 6px; padding-bottom: 24px; }
+
+.codeCard, .players, .startBox {
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.codeCard { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.label { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+.bigCode { font-family: var(--mono); font-size: 38px; font-weight: 700; letter-spacing: 0.18em; padding-left: 0.18em; }
+.codeActions { display: flex; gap: 8px; }
+
+.players { display: flex; flex-direction: column; gap: 6px; }
+.player { display: flex; align-items: center; gap: 10px; min-height: 40px; }
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--surface-3);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.playerName { font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nameInput {
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent);
+  background: var(--surface-2);
+  outline: none;
+}
+.badge { font-size: 11px; font-weight: 650; padding: 2px 8px; border-radius: 999px; background: var(--surface-3); color: var(--muted); }
+.offline { width: 8px; height: 8px; border-radius: 50%; background: var(--warning); }
+.waiting { color: var(--faint); font-size: 14px; }
+.waiting .avatar { background: transparent; border: 1px dashed var(--border); }
+
+.startBox { display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
+.startBox > button { width: 100%; }
+.waitHost { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--muted); font-size: 14px; height: 52px; }
+.problem { color: var(--warning); font-size: 13px; text-align: center; }
+
+.section { display: flex; flex-direction: column; gap: 14px; }
+.section h2 { margin: 0; font-size: 15px; font-weight: 650; color: var(--muted); }
+
+.modes { display: grid; grid-template-columns: repeat(auto-fill, minmax(178px, 1fr)); gap: 10px; }
+.mode {
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  row-gap: 2px;
+  align-items: center;
+  text-align: left;
+  padding: 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.mode:hover:not(:disabled) { border-color: var(--faint); }
+.mode:disabled { opacity: 0.4; cursor: default; }
+.modeActive { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+.modeIcon {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--text);
+}
+.modeActive .modeIcon { background: var(--accent); color: var(--accent-ink); }
+.modeName { font-weight: 640; font-size: 14px; }
+.modeBlurb { font-size: 12.5px; color: var(--muted); line-height: 1.3; }
+
+.howTo { margin: 0; padding: 14px 18px 14px 32px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--border); color: var(--muted); font-size: 14px; line-height: 1.55; }
+
+.mods { display: flex; flex-direction: column; gap: 14px; padding: 18px; border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--border); }
+.modRow { display: grid; grid-template-columns: 130px 1fr; align-items: center; gap: 12px; }
+.modLabel, .toggleRow span { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 560; color: var(--muted); }
+.toggles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.toggleRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: var(--radius); background: var(--surface-2); cursor: pointer; }
+
+.maps { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; }
+.mapCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 8px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+}
+.mapCard:disabled { opacity: 0.4; cursor: default; }
+.mapActive { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+.mapName { font-size: 13px; font-weight: 600; text-align: center; }
+.mapTag { position: absolute; top: 6px; right: 6px; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); }
+.mapNew { justify-content: center; color: var(--muted); border-style: dashed; min-height: 130px; }
+
+@media (max-width: 900px) {
+  .lobby { grid-template-columns: 1fr; height: auto; padding: 16px; }
+  .main { overflow: visible; }
+  .modRow { grid-template-columns: 1fr; gap: 8px; }
+  .toggles { grid-template-columns: 1fr; }
+}
