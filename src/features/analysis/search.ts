@@ -63,11 +63,34 @@ export function child(pos: Position, move: Move): Position {
   return next;
 }
 
+/**
+ * Keeps resolving captures past the search horizon. Without it the engine
+ * stops mid trade and calls quiet moves blunders, which is especially bad
+ * in atomic where every capture swings a lot of material.
+ */
+function quiesce(pos: Position, alpha: number, beta: number, ply: number, ctx: Ctx, depthLeft: number): number {
+  ctx.nodes++;
+  const stand = evaluate(pos);
+  if (depthLeft <= 0 || ctx.nodes > ctx.limit) return stand;
+  const maximizing = pos.turn === "w";
+  if (maximizing ? stand >= beta : stand <= alpha) return stand;
+  if (maximizing) alpha = Math.max(alpha, stand);
+  else beta = Math.min(beta, stand);
+  let best = stand;
+  const captures = legalMoves(pos).filter((m) => isCapture(pos, m));
+  for (const move of order(pos, captures)) {
+    const next = child(pos, move);
+    const score = terminal(next, pos.turn, ply + 1) ?? quiesce(next, alpha, beta, ply + 1, ctx, depthLeft - 1);
+    if (maximizing) { best = Math.max(best, score); alpha = Math.max(alpha, score); }
+    else { best = Math.min(best, score); beta = Math.min(beta, score); }
+    if (beta <= alpha) break;
+  }
+  return best;
+}
+
 function search(pos: Position, depth: number, alpha: number, beta: number, ply: number, ctx: Ctx): number {
   ctx.nodes++;
-  // Leaves skip move generation: it is the expensive part and a stalemate
-  // one ply past the horizon rarely changes a rating.
-  if (depth <= 0 || ctx.nodes > ctx.limit) return evaluate(pos);
+  if (depth <= 0 || ctx.nodes > ctx.limit) return quiesce(pos, alpha, beta, ply, ctx, 4);
   const moves = legalMoves(pos);
   if (moves.length === 0) {
     const side = pos.turn;
@@ -99,7 +122,7 @@ function search(pos: Position, depth: number, alpha: number, beta: number, ply: 
  * and the gap between the best and second best, so we search all of them
  * with a full window instead of just finding the best.
  */
-export function scoreRootMoves(pos: Position, depth = 3, nodeLimit = 60000): RootScore[] {
+export function scoreRootMoves(pos: Position, depth = 3, nodeLimit = 150000): RootScore[] {
   const out: RootScore[] = [];
   const moves = order(pos, legalMoves(pos));
   for (const move of moves) {
