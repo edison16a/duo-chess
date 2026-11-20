@@ -50,6 +50,7 @@ export function Home() {
         </label>
         <div className={styles.actions}>
           <Button variant="primary" size="lg" icon="plus" onClick={host} data-testid="host">Host game</Button>
+          <Button variant="secondary" size="lg" icon="bot" onClick={() => router.push("/bot")} data-testid="play-bot">Play vs bot</Button>
           <form className={styles.join} onSubmit={join}>
             <input
               value={code}
