@@ -37,6 +37,9 @@
 /* Rendered 3D art of the power in action. */
 .art { position: absolute; inset: 0; background: var(--art) center / cover no-repeat, #121417; z-index: -2; transition: transform 0.5s ease; }
 .card:hover .art { transform: scale(1.06); }
+/* Live art sits over the still and fades in once the scene has drawn its first frame. */
+.live { position: absolute; inset: 0; z-index: -2; opacity: 0; transition: opacity 0.6s ease; pointer-events: none; }
+.liveReady { opacity: 1; }
 
 .text { position: relative; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .title { display: flex; align-items: center; gap: 7px; font-weight: 650; font-size: 14px; line-height: 1.2; }

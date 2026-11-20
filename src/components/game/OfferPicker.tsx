@@ -50,7 +50,7 @@ export function OfferPicker({ draft, me, opponent, onPick }: Props) {
       </div>
       <div className={`${styles.options} ${split ? styles.two : ""}`} data-testid="draft-offer">
         {offer.map((id) => (
-          <PowerCard key={`${made}:${id}`} id={id} size="lg" onClick={() => pick(id)} />
+          <PowerCard key={`${made}:${id}`} id={id} size="lg" live onClick={() => pick(id)} />
         ))}
       </div>
     </>

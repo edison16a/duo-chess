@@ -9,6 +9,7 @@ import styles from "./powers.module.css";
 
 /** The live 3D preview pulls in three.js, so it only loads when someone actually hovers long enough. */
 const PowerPreview = dynamic(() => import("./PowerPreview"), { ssr: false });
+const LiveArt = dynamic(() => import("./LiveArt"), { ssr: false });
 
 interface Props {
   id: string;
@@ -17,15 +18,17 @@ interface Props {
   disabled?: boolean;
   crossed?: boolean;
   tag?: string;
+  /** Plays the power's scene live as the art. Only for the few big cards in view at once: each one is a WebGL canvas. */
+  live?: boolean;
   onClick?: () => void;
 }
 
 /**
  * A power as a card. Large cards are full bleed rendered art of the power in
- * action; compact cards keep a thumbnail. Resting on it for a second opens a
+ * action, played live in 3D when `live` is set; compact cards keep a thumbnail. Resting on it for a second opens a
  * small live 3D preview beside it with how to use it.
  */
-export function PowerCard({ id, size = "md", active, disabled, crossed, tag, onClick }: Props) {
+export function PowerCard({ id, size = "md", active, disabled, crossed, tag, live, onClick }: Props) {
   const def = POWERS[id];
   const hover = useHoverPreview();
   if (!def) return null;
@@ -46,6 +49,7 @@ export function PowerCard({ id, size = "md", active, disabled, crossed, tag, onC
         data-power={id}
       >
         {size !== "sm" && <span className={styles.art} aria-hidden />}
+        {live && size !== "sm" && <LiveArt id={id} />}
         <span className={styles.text}>
           <span className={styles.title}>
             <GlyphIcon size={size === "lg" ? 20 : 16}>{POWER_ICONS[id]}</GlyphIcon>
