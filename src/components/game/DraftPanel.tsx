@@ -1,7 +1,7 @@
 "use client";
 
 import type { Color } from "@/engine";
-import type { DraftState } from "@/features/powers";
+import { playerDone, type DraftState } from "@/features/powers";
 import type { Player } from "@/features/room/types";
 import { DeckBuilder } from "./DeckBuilder";
 import { OfferPicker } from "./OfferPicker";
@@ -16,32 +16,35 @@ interface Props {
 }
 
 /**
- * The draft screen. Offer styles show a few cards per turn, Free Deck lets
- * both players build a hand at once. Either way both hands sit underneath,
- * except an opponent's deck stays hidden until it is locked in.
+ * The draft screen. Both players draft at the same time: offer styles show
+ * each player their own cards, Free Deck lets each build a hand. Both hands
+ * sit underneath as full art cards, except an opponent's deck stays hidden
+ * until it is locked in.
  */
 export function DraftPanel({ draft, me, players, onPick }: Props) {
   const deck = draft.style === "deck";
   const name = (c: Color) => players[c]?.name ?? (c === "w" ? "White" : "Black");
+  const opponent = me ? name(me === "w" ? "b" : "w") : "Players";
 
   return (
     <div className={`${styles.draft} ${deck ? styles.draftWide : ""}`} data-testid="draft">
       {deck ? (
-        <DeckBuilder draft={draft} me={me} opponent={me ? name(me === "w" ? "b" : "w") : "Players"} onLock={onPick} />
+        <DeckBuilder draft={draft} me={me} opponent={opponent} onLock={onPick} />
       ) : (
-        <OfferPicker draft={draft} me={me} drafter={name(draft.turn)} onPick={(id) => onPick([id])} />
+        <OfferPicker draft={draft} me={me} opponent={opponent} onPick={(id) => onPick([id])} />
       )}
       <div className={styles.hands}>
         {(["w", "b"] as Color[]).map((c) => {
           const hidden = deck && c !== me && !draft.locked[c];
+          const finished = playerDone(draft, c);
           return (
             <div key={c} className={styles.hand}>
               <span className={styles.barTitle}>
                 {name(c)}
-                {deck && <span className={draft.locked[c] ? styles.ready : styles.building}>{draft.locked[c] ? "Ready" : "Building"}</span>}
+                <span className={finished ? styles.ready : styles.building}>{finished ? "Ready" : deck ? "Building" : "Picking"}</span>
               </span>
-              <div className={styles.grid}>
-                {hidden ? null : draft.inventory[c].map((id, i) => <PowerCard key={`${id}${i}`} id={id} size="sm" disabled />)}
+              <div className={styles.handCards}>
+                {hidden ? null : draft.inventory[c].map((id, i) => <PowerCard key={`${id}${i}`} id={id} size="lg" disabled />)}
               </div>
             </div>
           );
