@@ -40,10 +40,10 @@ export async function placeFen(stage: Stage, shape: BoardShape, rows: string, ma
   return placed;
 }
 
-export function addBoard(stage: Stage, shape: BoardShape = { width: 8, height: 8 }): THREE.Group {
+export function addBoard(stage: Stage, shape: BoardShape = { width: 8, height: 8 }, dress = true): THREE.Group {
   const board = createBoard(shape);
   stage.scene.add(board);
-  dressStage(stage);
+  if (dress) dressStage(stage);
   return board;
 }
 
