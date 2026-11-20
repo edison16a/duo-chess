@@ -8,7 +8,6 @@ import { markHosting, playerName, savePlayerName } from "@/features/room/identit
 import { Button } from "@/components/ui/Button";
 import { GitHubButton } from "@/components/ui/GitHubButton";
 import { Icon } from "@/components/ui/icons";
-import { Logo } from "@/components/ui/Logo";
 import { Battlefield } from "./Battlefield";
 import styles from "./home.module.css";
 
@@ -37,7 +36,6 @@ export function Home() {
       <Battlefield />
       <div className={styles.corner}><GitHubButton /></div>
       <div className={styles.hero}>
-        <Logo size={88} />
         <h1>Duo Chess</h1>
         <label className={styles.nameRow}>
           <Icon name="edit" size={15} />
