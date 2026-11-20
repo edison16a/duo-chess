@@ -55,11 +55,12 @@ export function Home() {
             <input
               value={code}
               onChange={(e) => setCode(normalizeCode(e.target.value))}
-              placeholder="CODE"
+              placeholder="0000"
               maxLength={CODE_LENGTH}
               aria-label="Room code"
               data-testid="code-input"
-              autoCapitalize="characters"
+              inputMode="numeric"
+              autoComplete="off"
               spellCheck={false}
             />
             <Button type="submit" size="lg" icon="enter" disabled={!isValidCode(code)} data-testid="join">Join</Button>
