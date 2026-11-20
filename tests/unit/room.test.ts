@@ -23,10 +23,12 @@ describe("room reducer", () => {
     expect(room.phase).toBe("playing");
   });
 
-  it("only lets the host change settings and start", () => {
-    const room = run(lobby(), { type: "config", id: "guest", config: { mode: "atomic" } }, { type: "start", id: "guest" });
-    expect(room.config.mode).toBe("classic");
+  it("lets both players change settings but only the host start", () => {
+    let room = run(lobby(), { type: "config", id: "guest", config: { mode: "atomic" } }, { type: "start", id: "guest" });
+    expect(room.config.mode).toBe("atomic");
     expect(room.phase).toBe("lobby");
+    room = run(room, { type: "join", id: "watcher", name: "Cy" }, { type: "config", id: "watcher", config: { mode: "classic" } });
+    expect(room.config.mode).toBe("atomic");
   });
 
   it("plays moves in turn and rejects out of turn moves", () => {

@@ -3,6 +3,11 @@
 import type { RoomAction, ReduceCtx, RoomState } from "../types";
 import { beginGame, cleanName, colorOf, finish } from "./helpers";
 
+/** The first two players are the ones who will play, so either may change settings. Later joiners only watch. */
+export function canConfigure(state: RoomState, id: string): boolean {
+  return state.phase === "lobby" && state.players.slice(0, 2).some((p) => p.id === id);
+}
+
 type LobbyAction = Extract<RoomAction, { type: "join" | "rename" | "leave" | "config" | "swap" | "start" | "presence" }>;
 
 export function reduceLobby(state: RoomState, action: LobbyAction, ctx: ReduceCtx): RoomState {
@@ -27,11 +32,12 @@ export function reduceLobby(state: RoomState, action: LobbyAction, ctx: ReduceCt
       if (next.phase === "lobby" || next.phase === "over") next = { ...next, seats: { w: null, b: null } };
       return next;
     }
+    // Both players shape the game together; only the host starts it.
     case "config":
-      if (action.id !== state.hostId || state.phase !== "lobby") return state;
+      if (!canConfigure(state, action.id)) return state;
       return { ...state, config: { ...state.config, ...action.config } };
     case "swap": {
-      if (action.id !== state.hostId || state.phase !== "lobby") return state;
+      if (!canConfigure(state, action.id)) return state;
       const order = { w: "b", b: "random", random: "w" } as const;
       return { ...state, config: { ...state.config, hostColor: order[state.config.hostColor] } };
     }

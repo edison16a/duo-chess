@@ -1,5 +1,6 @@
 "use client";
 
+import { canConfigure } from "@/features/room/reducer/lobby";
 import { useState, type ReactNode } from "react";
 import { MODE_BY_ID } from "@/features/modes";
 import { mapProblem } from "@/features/maps";
@@ -18,6 +19,7 @@ export function Lobby({ handle, side }: { handle: RoomHandle; side?: ReactNode }
   const room = handle.room!;
   const [copied, setCopied] = useState<"code" | "link" | null>(null);
   const isHost = room.hostId === handle.myId;
+  const canEdit = canConfigure(room, handle.myId);
   const mode = MODE_BY_ID[room.config.mode];
   const ready = room.players.length >= 2;
   const problem = mode.usesMap ? mapProblem(resolveMap(room.config)) : null;
@@ -60,7 +62,7 @@ export function Lobby({ handle, side }: { handle: RoomHandle; side?: ReactNode }
               {ready ? "Start game" : "Waiting for a player"}
             </Button>
           ) : (
-            <div className={styles.waitHost}><Icon name="clock" size={16} />Host picks the mode and starts</div>
+            <div className={styles.waitHost}><Icon name="clock" size={16} />Host starts the game</div>
           )}
           {problem && <span className={styles.problem}>{problem}</span>}
         </div>
@@ -69,7 +71,7 @@ export function Lobby({ handle, side }: { handle: RoomHandle; side?: ReactNode }
       <main className={`${styles.main} scroll-thin`}>
         <section className={styles.section}>
           <h2>Mode</h2>
-          <ModePicker value={room.config.mode} disabled={!isHost} onChange={(id) => handle.send({ type: "config", config: { mode: id } })} />
+          <ModePicker value={room.config.mode} disabled={!canEdit} onChange={(id) => handle.send({ type: "config", config: { mode: id } })} />
           <ul className={styles.howTo}>
             {mode.howTo.map((line) => <li key={line}>{line}</li>)}
           </ul>
@@ -80,14 +82,14 @@ export function Lobby({ handle, side }: { handle: RoomHandle; side?: ReactNode }
             <MapPicker
               mapId={room.config.mapId}
               customMap={room.config.customMap}
-              disabled={!isHost}
+              disabled={!canEdit}
               onPick={(map) => handle.send({ type: "config", config: { mapId: map.id, customMap: map.custom ? map : null } })}
             />
           </section>
         )}
         <section className={styles.section}>
           <h2>Mods</h2>
-          <ModsPanel config={room.config} disabled={!isHost} onChange={(config) => handle.send({ type: "config", config })} />
+          <ModsPanel config={room.config} disabled={!canEdit} onChange={(config) => handle.send({ type: "config", config })} />
         </section>
       </main>
     </div>
