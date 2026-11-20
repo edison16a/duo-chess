@@ -76,6 +76,7 @@ export function createStage(o: StageOptions): Stage {
     if (o.dof) {
       bokeh = new BokehPass(scene, camera, { focus: o.dof.focus, aperture: o.dof.aperture, maxblur: o.dof.maxblur });
       composer.addPass(bokeh);
+      hideSoftDuringDepthPass(scene);
     }
     if (o.bloom) {
       bloomPass = new UnrealBloomPass(new THREE.Vector2(256, 256), o.bloom, 0.5, 1.05);
@@ -102,5 +103,31 @@ export function createStage(o: StageOptions): Stage {
       pmrem.dispose();
       renderer.dispose();
     },
+  };
+}
+
+/**
+ * The depth of field pass renders the scene once with a depth material.
+ * Glows, particles and decals would write solid depth there and leave dark
+ * streaks in the blur, so everything see through sits that pass out.
+ */
+function hideSoftDuringDepthPass(scene: THREE.Scene): void {
+  const hidden: THREE.Object3D[] = [];
+  const before = scene.onBeforeRender;
+  const after = scene.onAfterRender;
+  scene.onBeforeRender = (...args) => {
+    before.apply(scene, args);
+    if (scene.overrideMaterial === null) return;
+    scene.traverseVisible((obj) => {
+      const mat = (obj as THREE.Mesh).material as THREE.Material | undefined;
+      const soft = obj instanceof THREE.Points || obj instanceof THREE.Sprite || (obj instanceof THREE.Mesh && !!mat?.transparent);
+      if (soft) hidden.push(obj);
+    });
+    hidden.forEach((obj) => { obj.visible = false; });
+  };
+  scene.onAfterRender = (...args) => {
+    hidden.forEach((obj) => { obj.visible = true; });
+    hidden.length = 0;
+    after.apply(scene, args);
   };
 }
