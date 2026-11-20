@@ -7,8 +7,9 @@ const BASE = process.env.BASE_URL || "http://localhost:3100";
 async function launch() {
   // SwiftShader gives headless Chromium WebGL for the 3D board.
   const browser = await chromium.launch({ args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
-  const make = async () => {
-    const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: Number(process.env.DSF || 1) });
+  // Reduced motion skips the live landing battle, which would otherwise hog the CPU in software WebGL.
+  const make = async (opts = { reducedMotion: "reduce" }) => {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: Number(process.env.DSF || 1), ...opts });
     const page = await context.newPage();
     page.on("pageerror", (e) => console.log("[pageerror]", e.message, (e.stack || "").split("\n").slice(0, 8).join(" // ")));
     page.on("console", (m) => m.type() === "error" && console.log("[console]", m.text().slice(0, 300) + " ::: " + m.text().slice(-1200).replace(/\s+/g, " ")));

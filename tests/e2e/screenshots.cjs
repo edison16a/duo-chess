@@ -40,10 +40,13 @@ async function click3d(page, square) {
   const { browser, make } = await launch();
   try {
     // Landing page with the live battlefield behind it.
-    const solo = await make();
+    // The live battle is heavy in software WebGL, so this one shot is taken at 1x with more time.
+    const solo = await make({ reducedMotion: "no-preference", deviceScaleFactor: 1 });
     await solo.goto(BASE);
     await solo.waitForTimeout(16000);
-    await solo.screenshot({ path: `${OUT}/home.png` });
+    await solo.screenshot({ path: `${OUT}/home.png`, timeout: 120000 });
+    // Leave the live battle so it stops eating CPU while the games run.
+    await solo.goto("about:blank");
 
     // Lobby with the animated mode carousel, then a classic game on the 3D board.
     let r = await room(make, "classic");
@@ -85,13 +88,17 @@ async function click3d(page, square) {
       const cards = page.getByTestId("draft").locator("[data-power]");
       await cards.nth(0).click();
       await cards.nth(1).click();
+      // Park the pointer so the clicked card does not open its 3D preview.
+      await page.mouse.move(5, 5);
       await page.screenshot({ path: `${OUT}/draft.png` });
       const third = await cards.nth(2).boundingBox();
-      await page.mouse.move(third.x + third.width / 2, third.y + third.height / 2);
+      await page.mouse.move(third.x + 20, third.y + 20);
+      await page.mouse.move(third.x + third.width / 2, third.y + third.height / 2, { steps: 5 });
       await page.waitForTimeout(1300);
-      await page.getByTestId("power-preview").waitFor();
-      await page.waitForTimeout(6000);
-      await page.screenshot({ path: `${OUT}/preview.png` });
+      await page.getByTestId("power-preview").waitFor({ timeout: 90000 });
+      await page.waitForTimeout(12000);
+      await page.screenshot({ path: `${OUT}/preview.png`, timeout: 120000 });
+      await page.mouse.move(5, 5);
       break;
     }
 
