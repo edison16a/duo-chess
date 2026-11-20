@@ -1,0 +1,71 @@
+/* Design tokens. Dark by default with a light theme for people who prefer it. */
+:root {
+  --bg: #0f1012;
+  --surface: #16171a;
+  --surface-2: #1d1f23;
+  --surface-3: #25272c;
+  --border: #2a2c31;
+  --text: #ececee;
+  --muted: #8b8e96;
+  --faint: #5b5e66;
+  --accent: #5e9c76;
+  --accent-strong: #6fb488;
+  --accent-ink: #0d1a12;
+  --danger: #e5484d;
+  --warning: #f2b33d;
+
+  --rarity-rare: #4f8ef7;
+  --rarity-epic: #a35bf0;
+  --rarity-legendary: #f2b33d;
+  --rarity-mythical: #e5484d;
+  --rarity-chromatic: #ff6ec7;
+
+  --rate-legendary: #ffc94a;
+  --rate-brilliant: #1fc7c1;
+  --rate-great: #5b8cf0;
+  --rate-best: #7cc05a;
+  --rate-excellent: #8cc46b;
+  --rate-good: #9bb08d;
+  --rate-inaccuracy: #f0c045;
+  --rate-mistake: #f08c35;
+  --rate-blunder: #e5484d;
+
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 18px;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+
+body { min-height: 100dvh; overflow-x: hidden; }
+
+button { font: inherit; color: inherit; }
+input { font: inherit; color: inherit; }
+a { color: inherit; text-decoration: none; }
+
+::selection { background: color-mix(in srgb, var(--accent) 40%, transparent); }
+
+/* Chromatic rarity cycles through hues. */
+@keyframes chroma {
+  from { filter: hue-rotate(0deg); }
+  to { filter: hue-rotate(360deg); }
+}
+
+.scroll-thin { scrollbar-width: thin; scrollbar-color: var(--surface-3) transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
