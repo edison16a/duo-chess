@@ -28,8 +28,10 @@ export function GameView({ handle }: { handle: RoomHandle }) {
   const { room, game, pos, me } = v;
   const mode = MODE_BY_ID[room.config.mode];
   const mods = room.config.mods;
-  // Rooms saved before the setting existed have no view, so they stay flat.
-  const view = mods.view ?? "2d";
+  // The host's Board setting is where everyone starts; each player can still switch for themselves.
+  // Rooms saved before the setting existed have no view, so they start flat.
+  const [ownView, setView] = useState<"2d" | "3d" | null>(null);
+  const view = ownView ?? mods.view ?? "2d";
   const player = (c: Color) => room.players.find((p) => p.id === room.seats[c]);
   const players = { w: player("w"), b: player("b") };
   const bottom = v.orientation;
@@ -160,6 +162,8 @@ export function GameView({ handle }: { handle: RoomHandle }) {
           theme={v.theme}
           onTheme={v.setTheme}
           onFlip={v.flip}
+          view={view}
+          onView={setView}
           onResign={() => handle.send({ type: "resign" })}
           onDraw={() => handle.send({ type: "draw-offer" })}
           onDrawAnswer={(accept) => handle.send({ type: "draw-answer", accept })}
