@@ -22,8 +22,8 @@ interface Props {
 
 /**
  * A power as a card. Large cards are full bleed rendered art of the power in
- * action; compact cards keep a thumbnail. Hovering for a few seconds opens a
- * live 3D preview with how to use it.
+ * action; compact cards keep a thumbnail. Resting on it for a second opens a
+ * small live 3D preview beside it with how to use it.
  */
 export function PowerCard({ id, size = "md", active, disabled, crossed, tag, onClick }: Props) {
   const def = POWERS[id];
