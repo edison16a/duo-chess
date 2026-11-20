@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { positionKey } from "@/engine";
 import type { BoardProps } from "@/components/board/Board";
+import type { Move } from "@/engine";
 import { PromotionPicker } from "@/components/board/PromotionPicker";
 import { useAnnotations } from "@/components/board/useAnnotations";
 import { useInteraction } from "@/components/board/useInteraction";
@@ -13,6 +14,8 @@ import { useBoard3DSync } from "./useBoard3DSync";
 import styles from "./board3d.module.css";
 
 /** The fully 3D board. Same props and rules as the 2D board, different renderer. */
+const NO_PREMOVES: Move[] = [];
+
 export default function Board3D(props: BoardProps) {
   const { pos, legal, onMove, targeting, dropKind, orientation } = props;
   const wrap = useRef<HTMLDivElement>(null);
@@ -24,7 +27,7 @@ export default function Board3D(props: BoardProps) {
   const ui = useInteraction({ pos, legal: premove ? premove.moves : legal, onMove: premove ? premove.onQueue : onMove, targeting, dropKind, autoQueen: !!premove });
   const notes = useAnnotations(positionKey(pos));
   const pointer = useBoard3DPointer({ scene, canvas, ui, notes, premove, orientation });
-  useBoard3DSync(scene, ready, props, ui, notes, premove?.queued ?? null);
+  useBoard3DSync(scene, ready, props, ui, notes, premove?.queue ?? NO_PREMOVES);
 
   useEffect(() => {
     const instance = new BoardScene(canvas.current!);

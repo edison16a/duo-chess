@@ -77,7 +77,8 @@ export function GameView({ handle }: { handle: RoomHandle }) {
           <div className={styles.boardWrap}>
             <BoardView
               mode={view}
-              pos={past ? past.pos : pos}
+              // Queued premoves are already played on your own board, so you see where your pieces will be.
+              pos={past ? past.pos : v.premove?.preview ?? pos}
               orientation={v.orientation}
               viewer={me}
               theme={v.theme}

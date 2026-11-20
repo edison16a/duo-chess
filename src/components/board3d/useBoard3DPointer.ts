@@ -45,7 +45,7 @@ export function useBoard3DPointer({ scene, canvas, ui, notes, premove, orientati
     canvas.current?.setPointerCapture(e.pointerId);
     const { square } = pick(e);
     if (e.button === 2) {
-      if (premove?.queued) premove.onCancel();
+      if (premove?.queue.length) premove.onCancel();
       if (square !== null) { notes.begin(square, brushFor(e)); mode.current = { kind: "arrow" }; }
       return;
     }

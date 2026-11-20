@@ -1,4 +1,4 @@
-/** Drawn layers for right click annotations and the queued premove. */
+/** Drawn layers for right click annotations and queued premoves. */
 
 import type { Color, Move, Position } from "@/engine";
 import { arrowPolygon } from "./arrows";
@@ -19,13 +19,19 @@ export function MarkLayer({ pos, orientation, marks }: { pos: Size; orientation:
   );
 }
 
-/** Tints the from and to squares of a queued premove. */
-export function PremoveLayer({ pos, orientation, move }: { pos: Size; orientation: Color; move: Move | null }) {
-  if (!move) return null;
+/** Tints the from and to squares of every queued premove. Squares shared by a chain are tinted once. */
+export function PremoveLayer({ pos, orientation, moves }: { pos: Size; orientation: Color; moves: Move[] }) {
+  if (!moves.length) return null;
+  const cells = new Map<number, "from" | "to">();
+  for (const m of moves) {
+    if (!cells.has(m.from)) cells.set(m.from, "from");
+    cells.set(m.to, "to");
+  }
   return (
     <>
-      <div data-premove="from" className={styles.premove} style={cellStyle(pos, move.from, orientation)} />
-      <div data-premove="to" className={styles.premove} style={cellStyle(pos, move.to, orientation)} />
+      {[...cells].map(([square, role]) => (
+        <div key={square} data-premove={role} className={styles.premove} style={cellStyle(pos, square, orientation)} />
+      ))}
     </>
   );
 }

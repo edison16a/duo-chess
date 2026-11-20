@@ -96,7 +96,7 @@ export function Board(props: BoardProps) {
         );
       })}
       <UnderLayer {...props} selected={ui.selected} targets={new Set()} duckSquares={new Set()} aimSquares={new Set()} aimColor={null} />
-      <PremoveLayer pos={pos} orientation={orientation} move={premove?.queued ?? null} />
+      <PremoveLayer pos={pos} orientation={orientation} moves={premove?.queue ?? []} />
       <MarkLayer pos={pos} orientation={orientation} marks={notes.marks} />
       <PieceLayer
         pos={pos}

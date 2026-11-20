@@ -33,7 +33,7 @@ function hiddenIds(pos: Position, viewer: Color | null, fog: boolean, blindfold:
   return { ids, visible };
 }
 
-export function useBoard3DSync(scene: RefObject<BoardScene | null>, ready: boolean, props: BoardProps, ui: Interaction, notes: Annotations, queued: Move | null) {
+export function useBoard3DSync(scene: RefObject<BoardScene | null>, ready: boolean, props: BoardProps, ui: Interaction, notes: Annotations, queued: Move[]) {
   const { pos, viewer, fog, blindfold, theme, orientation } = props;
   const hidden = useMemo(() => hiddenIds(pos, viewer, fog, blindfold), [pos, viewer, fog, blindfold]);
 
@@ -52,7 +52,7 @@ export function useBoard3DSync(scene: RefObject<BoardScene | null>, ready: boole
     const list: Highlight[] = [];
     const tint = (square: number, color: string, opacity = 0.45) => square >= 0 && list.push({ square, kind: "tint", color, opacity });
     if (props.lastMove) { tint(props.lastMove.from, "#ffd64f"); tint(props.lastMove.to, "#ffd64f"); }
-    if (queued) { tint(queued.from, "#e0453f", 0.5); tint(queued.to, "#e0453f", 0.5); }
+    for (const m of queued) { tint(m.from, "#e0453f", 0.5); tint(m.to, "#e0453f", 0.5); }
     if (ui.selected !== null) tint(ui.selected, "#46c37b", 0.6);
     props.checkSquares.forEach((s) => tint(s, "#ff3b3b", 0.65));
     notes.marks.forEach((m) => tint(m.square, BRUSH[m.brush], 0.55));

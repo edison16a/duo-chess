@@ -2,7 +2,7 @@
 
 /**
  * Pointer handling for the board. The left button selects, drags and drops
- * pieces. The right button draws annotations and cancels a premove.
+ * pieces. The right button draws annotations and cancels premoves.
  */
 
 import { useState, type PointerEvent as ReactPointerEvent, type RefObject } from "react";
@@ -45,7 +45,7 @@ export function useBoardPointer({ ref, pos, orientation, ui, notes, premove }: O
   const onRightDown: Handler = (e) => {
     // A right click while dragging drops the piece back, like chess.com.
     setDrag(null);
-    if (premove?.queued) premove.onCancel();
+    if (premove?.queue.length) premove.onCancel();
     const square = squareFromPointer(e);
     if (square === null) return;
     ref.current?.setPointerCapture(e.pointerId);
@@ -58,8 +58,8 @@ export function useBoardPointer({ ref, pos, orientation, ui, notes, premove }: O
     notes.clear();
     const square = squareFromPointer(e);
     if (square === null) return;
-    // Clicking an empty square that is not a premove target cancels the premove.
-    if (premove?.queued && !pos.board[square] && !ui.targets.has(square)) premove.onCancel();
+    // Clicking an empty square that is not a premove target cancels the queued premoves.
+    if (premove?.queue.length && !pos.board[square] && !ui.targets.has(square)) premove.onCancel();
     if (ui.pressSquare(square)) {
       ref.current?.setPointerCapture(e.pointerId);
       setDrag({ square, startX: e.clientX, startY: e.clientY, dx: 0, dy: 0, moved: false });
