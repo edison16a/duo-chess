@@ -7,7 +7,10 @@
 
 import mqtt, { type MqttClient } from "mqtt";
 import type { RoomAction, RoomState } from "@/features/room/types";
-import { BROKER_URL, ROOM_TTL_SECONDS, topics } from "./config";
+import { BROKER_URL, PROTOCOL_VERSION, ROOM_TTL_SECONDS, topics } from "./config";
+
+/** Expiry only exists in MQTT 5; older brokers get plain retained messages. */
+const expiring = PROTOCOL_VERSION === 5 ? { properties: { messageExpiryInterval: ROOM_TTL_SECONDS } } : {};
 
 export type ChannelStatus = "connecting" | "online" | "offline";
 
@@ -26,7 +29,7 @@ export class RoomChannel {
   constructor(private code: string, private clientId: string, listenForActions: boolean, handlers: ChannelHandlers) {
     const presenceTopic = topics.presence(code, clientId);
     this.client = mqtt.connect(BROKER_URL, {
-      protocolVersion: 5,
+      protocolVersion: PROTOCOL_VERSION,
       clientId: `dc_${clientId}_${Math.random().toString(36).slice(2, 8)}`,
       clean: true,
       reconnectPeriod: 2000,
@@ -39,7 +42,7 @@ export class RoomChannel {
       const subs = [topics.state(code), topics.presenceAll(code)];
       if (listenForActions) subs.push(topics.action(code));
       this.client.subscribe(subs, { qos: 1 }, () => handlers.onSubscribed?.());
-      this.client.publish(presenceTopic, "1", { retain: true, qos: 1, properties: { messageExpiryInterval: ROOM_TTL_SECONDS } });
+      this.client.publish(presenceTopic, "1", { retain: true, qos: 1, ...expiring });
     });
     this.client.on("reconnect", () => handlers.onStatus("connecting"));
     this.client.on("offline", () => handlers.onStatus("offline"));
@@ -59,7 +62,7 @@ export class RoomChannel {
     this.client.publish(topics.state(this.code), JSON.stringify(state), {
       retain: true,
       qos: 1,
-      properties: { messageExpiryInterval: ROOM_TTL_SECONDS },
+      ...expiring,
     });
   }
 

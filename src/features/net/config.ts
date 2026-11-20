@@ -6,6 +6,12 @@
  */
 export const BROKER_URL = process.env.NEXT_PUBLIC_MQTT_URL || "wss://broker.emqx.io:8084/mqtt";
 
+/**
+ * MQTT 5 lets retained rooms expire by themselves. The local test broker
+ * only speaks 3.1.1, so the version can be lowered with an env var.
+ */
+export const PROTOCOL_VERSION: 4 | 5 = process.env.NEXT_PUBLIC_MQTT_PROTOCOL === "4" ? 4 : 5;
+
 export const TOPIC_ROOT = "duochess/v1/room";
 
 /** Retained room snapshots expire on their own, so abandoned games clean themselves up. */
