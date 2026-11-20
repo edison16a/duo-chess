@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { GitHubButton } from "@/components/ui/GitHubButton";
 import { Icon } from "@/components/ui/icons";
 import { Logo } from "@/components/ui/Logo";
+import { Battlefield } from "./Battlefield";
 import styles from "./home.module.css";
 
 export function Home() {
@@ -33,6 +34,7 @@ export function Home() {
 
   return (
     <main className={styles.home}>
+      <Battlefield />
       <div className={styles.corner}><GitHubButton /></div>
       <div className={styles.hero}>
         <Logo size={88} />
