@@ -43,7 +43,7 @@ export function createStage(o: StageOptions): Stage {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.95;
   renderer.shadowMap.enabled = o.shadows ?? true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
 
   const scene = new THREE.Scene();
   if (o.background !== null) scene.background = new THREE.Color(o.background ?? 0x0f1012);
