@@ -30,74 +30,90 @@ async function play(p, list, wait = 900) {
   }
 }
 
+/** Clicks a square on the 3D board through the scene's own projection. */
+async function click3d(page, square) {
+  const pt = await page.evaluate((s) => document.querySelector('[data-testid="board3d"] canvas').__scene.screenOf(s), square);
+  await page.mouse.click(pt.x, pt.y);
+}
+
 (async () => {
   const { browser, make } = await launch();
   try {
-    // Hero: a classic game with ratings and the eval bar.
-    let r = await room(make, "classic", async (h) => { await h.getByLabel("Eval bar").click(); });
+    // Landing page with the live battlefield behind it.
+    const solo = await make();
+    await solo.goto(BASE);
+    await solo.waitForTimeout(16000);
+    await solo.screenshot({ path: `${OUT}/home.png` });
+
+    // Lobby with the animated mode carousel, then a classic game on the 3D board.
+    let r = await room(make, "classic");
+    await r.host.waitForTimeout(3000);
     await r.host.screenshot({ path: `${OUT}/lobby.png` });
     await r.host.getByTestId("start").click();
     let p = await seats(r.host, r.guest);
-    await play(p, ["e2e4", "e7e5", "g1f3", "b8c6", "f1c4", "g8f6", "f3g5", "d7d5", "e4d5", "f6d5", "g5f7"], 1400);
-    await p.w.waitForTimeout(700);
-    await p.w.screenshot({ path: `${OUT}/hero.png` });
+    await p.w.getByTestId("view-3d").click();
+    await p.w.getByTestId("board3d").waitFor();
+    await p.w.waitForTimeout(6000);
+    const moves = ["e2e4", "e7e5", "g1f3", "b8c6", "f1c4", "g8f6", "f3g5", "d7d5", "e4d5", "f6d5", "g5f7"];
+    for (let i = 0; i < moves.length; i++) {
+      if (i % 2 === 0) {
+        await click3d(p.w, sq(moves[i].slice(0, 2)));
+        await p.w.waitForTimeout(150);
+        await click3d(p.w, sq(moves[i].slice(2, 4)));
+      } else {
+        await move(p.b, sq(moves[i].slice(0, 2)), sq(moves[i].slice(2, 4)));
+      }
+      await p.w.waitForTimeout(1500);
+    }
+    await p.w.waitForTimeout(400);
+    await p.w.screenshot({ path: `${OUT}/board3d.png` });
+    // The same game from Black's flat board, with an arrow drawn.
+    const box = await p.b.getByTestId("board").boundingBox();
+    const cell = box.width / 8;
+    await p.b.mouse.move(box.x + cell * 3.5, box.y + cell * 7.5);
+    await p.b.mouse.down({ button: "right" });
+    await p.b.mouse.move(box.x + cell * 3.5, box.y + cell * 5.5, { steps: 6 });
+    await p.b.mouse.up({ button: "right" });
+    await p.b.screenshot({ path: `${OUT}/board2d.png` });
 
-    // Superpowers draft and a power going off.
+    // Superpowers draft and the three second hover preview.
     r = await room(make, "superpowers");
     await r.host.getByTestId("start").click();
     await r.host.getByTestId("draft").waitFor();
-    for (let i = 0; i < 4; i++) {
-      for (const page of [r.host, r.guest]) {
-        if (!(await page.getByTestId("draft-confirm").count())) continue;
-        const cards = page.getByTestId("draft").locator("[data-power]");
-        await cards.nth(0).click();
-        await cards.nth(1).click();
-        if (i === 2) await page.screenshot({ path: `${OUT}/draft.png` });
-        await page.getByTestId("draft-confirm").click();
-        await page.waitForTimeout(500);
-        break;
-      }
+    for (const page of [r.host, r.guest]) {
+      if (!(await page.getByTestId("draft-confirm").count())) continue;
+      const cards = page.getByTestId("draft").locator("[data-power]");
+      await cards.nth(0).click();
+      await cards.nth(1).click();
+      await page.screenshot({ path: `${OUT}/draft.png` });
+      const third = await cards.nth(2).boundingBox();
+      await page.mouse.move(third.x + third.width / 2, third.y + third.height / 2);
+      await page.waitForTimeout(1300);
+      await page.getByTestId("power-preview").waitFor();
+      await page.waitForTimeout(6000);
+      await page.screenshot({ path: `${OUT}/preview.png` });
+      break;
     }
-    p = await seats(r.host, r.guest);
-    await play(p, ["e2e4", "e7e5"]);
-    const card = p.w.locator("aside [data-power]:not([disabled])").first();
-    await card.click();
-    for (let step = 0; step < 2; step++) {
-      const aim = p.w.locator("[data-aim]");
-      const n = await aim.count();
-      if (!n) break;
-      if (step === 0) await p.w.screenshot({ path: `${OUT}/aiming.png` });
-      const box = await aim.nth(Math.floor(n / 3)).boundingBox();
-      await p.w.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-      await p.w.waitForTimeout(150);
-    }
-    await p.w.waitForTimeout(250);
-    await p.w.screenshot({ path: `${OUT}/power.png` });
 
-    // Atomic explosion mid flight.
+    // Atomic explosion on the flat board, played by the 3D effects layer.
     r = await room(make, "atomic");
     await r.host.getByTestId("start").click();
     p = await seats(r.host, r.guest);
     await play(p, ["e2e4", "d7d5", "g1f3", "c8g4"]);
-    await play(p, ["e4d5"], 280);
+    await play(p, ["e4d5"], 320);
     await p.w.screenshot({ path: `${OUT}/atomic.png` });
 
-    // Library and editor.
-    const solo = await make();
+    // Library, bot setup and editor.
     await solo.goto(`${BASE}/library`);
     await solo.getByText("Powers (50)", { exact: true }).click();
-    await solo.waitForTimeout(500);
+    await solo.waitForTimeout(1500);
     await solo.screenshot({ path: `${OUT}/powers.png` });
-    await solo.getByText("Pieces", { exact: true }).click();
-    await solo.mouse.wheel(0, 1150);
-    await solo.waitForTimeout(500);
-    await solo.screenshot({ path: `${OUT}/pieces.png` });
+    await solo.goto(`${BASE}/bot`);
+    await solo.waitForTimeout(3000);
+    await solo.screenshot({ path: `${OUT}/bot.png` });
     await solo.goto(`${BASE}/editor`);
-    await solo.waitForTimeout(500);
+    await solo.waitForTimeout(800);
     await solo.screenshot({ path: `${OUT}/editor.png` });
-    await solo.goto(BASE);
-    await solo.waitForTimeout(500);
-    await solo.screenshot({ path: `${OUT}/home.png` });
     console.log("PASS");
   } catch (e) {
     console.log("FAIL", e.message);
