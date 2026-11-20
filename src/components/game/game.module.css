@@ -232,6 +232,3 @@
   .moves { max-height: 240px; }
 }
 
-.viewToggle { display: flex; padding: 3px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); margin-right: 4px; }
-.viewToggle button { border: 0; background: transparent; color: var(--muted); font-size: 12px; font-weight: 700; padding: 4px 9px; border-radius: 7px; cursor: pointer; }
-.viewToggle .viewOn { background: var(--accent); color: var(--accent-ink); }

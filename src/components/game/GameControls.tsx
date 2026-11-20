@@ -13,8 +13,6 @@ interface Props {
   theme: BoardTheme;
   onTheme: (id: string) => void;
   onFlip: () => void;
-  view: "2d" | "3d";
-  onView: (view: "2d" | "3d") => void;
   onResign: () => void;
   onDraw: () => void;
   onDrawAnswer: (accept: boolean) => void;
@@ -35,10 +33,6 @@ export function GameControls(p: Props) {
         </div>
       )}
       <div className={styles.controlRow}>
-        <div className={styles.viewToggle} role="group" aria-label="Board view">
-          <button type="button" className={p.view === "2d" ? styles.viewOn : ""} onClick={() => p.onView("2d")} data-testid="view-2d">2D</button>
-          <button type="button" className={p.view === "3d" ? styles.viewOn : ""} onClick={() => p.onView("3d")} data-testid="view-3d">3D</button>
-        </div>
         <Button size="sm" variant="ghost" icon="flip" onClick={p.onFlip} title="Flip board" aria-label="Flip board" />
         <Button size="sm" variant="ghost" icon="palette" onClick={() => p.onTheme(nextTheme.id)} title={`Board: ${p.theme.name}`} aria-label="Board theme" />
         <Button

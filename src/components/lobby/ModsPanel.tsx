@@ -37,12 +37,22 @@ export function ModsPanel({ config, disabled, onChange }: Props) {
           />
         </Row>
       )}
+      <Row icon="cube" label="Board">
+        <Segmented
+          options={[{ label: "2D", value: "2d" as const }, { label: "3D", value: "3d" as const }]}
+          value={mods.view ?? "2d"}
+          onChange={(view) => set({ view })}
+          disabled={disabled}
+          testId="board-view"
+        />
+      </Row>
       <Row icon="crown" label="Host plays">
         <Segmented
           options={[{ label: "White", value: "w" as const }, { label: "Black", value: "b" as const }, { label: "Random", value: "random" as const }]}
           value={config.hostColor}
           onChange={(hostColor) => onChange({ hostColor })}
           disabled={disabled}
+          testId="host-color"
         />
       </Row>
       {mode.powers && (

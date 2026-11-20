@@ -39,6 +39,8 @@ export interface Mods {
   /** Seconds per move before a random move is played for you. 0 is off. */
   moveTimer: number;
   blindfold: boolean;
+  /** Board the game is played on. The host picks it for both players. */
+  view: "2d" | "3d";
 }
 
 export const DEFAULT_MODS: Mods = {
@@ -47,6 +49,7 @@ export const DEFAULT_MODS: Mods = {
   evalBar: false,
   moveTimer: 0,
   blindfold: false,
+  view: "2d",
 };
 
 export const CLOCK_PRESETS: { label: string; value: ClockSetting | null }[] = [

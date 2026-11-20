@@ -14,7 +14,6 @@ import { PocketBar } from "./PocketBar";
 import { PowerBar } from "./PowerBar";
 import { ResultBanner } from "./ResultBanner";
 import { checkSquaresOf, useGameView } from "./useGameView";
-import { useViewMode } from "./viewMode";
 
 /** three.js only loads for people who switch to the 3D board. */
 const Board3D = dynamic(() => import("@/components/board3d/Board3D"), { ssr: false });
@@ -22,10 +21,11 @@ import styles from "./game.module.css";
 
 export function GameView({ handle }: { handle: RoomHandle }) {
   const v = useGameView(handle);
-  const [view, setView] = useViewMode();
   const { room, game, pos, me } = v;
   const mode = MODE_BY_ID[room.config.mode];
   const mods = room.config.mods;
+  // Rooms saved before the setting existed have no view, so they stay flat.
+  const view = mods.view ?? "2d";
   const player = (c: Color) => room.players.find((p) => p.id === room.seats[c]);
   const players = { w: player("w"), b: player("b") };
   const bottom = v.orientation;
@@ -138,8 +138,6 @@ export function GameView({ handle }: { handle: RoomHandle }) {
           theme={v.theme}
           onTheme={v.setTheme}
           onFlip={v.flip}
-          view={view}
-          onView={setView}
           onResign={() => handle.send({ type: "resign" })}
           onDraw={() => handle.send({ type: "draw-offer" })}
           onDrawAnswer={(accept) => handle.send({ type: "draw-answer", accept })}
