@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { opposite, type Color } from "@/engine";
 import { fxLevel, ratingsShow } from "@/features/fx";
 import { MODE_BY_ID } from "@/features/modes";
@@ -13,7 +14,7 @@ import { MoveList } from "./MoveList";
 import { PlayerStrip } from "./PlayerStrip";
 import { PocketBar } from "./PocketBar";
 import { PowerBar } from "./PowerBar";
-import { ResultBanner } from "./ResultBanner";
+import { GameOver } from "./GameOver";
 import { checkSquaresOf, useGameView } from "./useGameView";
 import { useResultReveal } from "./useResultReveal";
 
@@ -36,6 +37,12 @@ export function GameView({ handle }: { handle: RoomHandle }) {
   // Looking at an earlier position makes the board read only.
   const past = v.history.past;
   const revealed = useResultReveal(game.result, game.events, fxLevel(mods));
+  // Closing the results is remembered per game ending. Guests get a fresh object on every
+  // snapshot, so the ending is keyed by value; a rematch's ending then opens them again.
+  const ending = game.result ? `${room.code}:${game.history.length}:${game.result.reason}:${game.result.winner}` : null;
+  const [closedFor, setClosedFor] = useState<string | null>(null);
+  const closedResult = ending !== null && closedFor === ending;
+  const setClosedResult = (closed: boolean) => setClosedFor(closed ? ending : null);
 
   if (room.phase === "draft" && room.draft) {
     return (
@@ -94,15 +101,22 @@ export function GameView({ handle }: { handle: RoomHandle }) {
                 Back to live
               </button>
             )}
-            {game.result && revealed && !past && (
-              <ResultBanner
+            {game.result && revealed && !past && !closedResult && (
+              <GameOver
                 result={game.result}
                 me={me}
                 players={players}
+                history={game.history}
                 rematchVotes={room.rematch}
                 myId={handle.myId}
                 onRematch={() => handle.send({ type: "rematch" })}
+                onClose={() => setClosedResult(true)}
               />
+            )}
+            {game.result && revealed && !past && closedResult && (
+              <button type="button" className={styles.livePill} onClick={() => setClosedResult(false)} data-testid="show-results">
+                Results
+              </button>
             )}
           </div>
         </div>
