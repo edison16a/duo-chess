@@ -58,11 +58,13 @@ export class HostController {
     this.onChange(this.state);
   }
 
-  /** Rates the newest move when ratings or the eval bar are switched on. */
+  /**
+   * Rates every new move. Even with ratings hidden the game over screen
+   * needs them for accuracy, the estimated rating and the move counts.
+   */
   private maybeAnalyse(prev: RoomState, next: RoomState): void {
-    const { ratings, evalBar } = next.config.mods;
     const before = prev.game, after = next.game;
-    if (!(ratings || evalBar) || !before || !after || after.history.length !== before.history.length + 1) return;
+    if (!before || !after || after.history.length !== before.history.length + 1) return;
     const entry = after.history[after.history.length - 1];
     if (entry.power) return;
     if (this.analyzerMode !== next.config.mode) {
