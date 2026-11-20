@@ -3,7 +3,6 @@
 import { useState } from "react";
 import type { Color } from "@/engine";
 import { playerDone, type DraftState } from "@/features/powers";
-import { Button } from "@/components/ui/Button";
 import { PowerCard } from "./PowerCard";
 import styles from "./powers.module.css";
 
@@ -16,16 +15,17 @@ interface Props {
 
 /**
  * Your own offer in a Take & give or Triple draft. Both players pick from
- * their own cards at the same time. In Take & give the card you leave goes
- * to the opponent, so it is tagged as theirs. In Triple draft the cards you
- * leave are simply gone, so they are crossed out.
+ * their own cards at the same time, and clicking a card takes it right away.
+ * In Take & give the card you leave goes to the opponent; in Triple draft
+ * the cards you leave are simply gone.
  */
 export function OfferPicker({ draft, me, opponent, onPick }: Props) {
-  const [chosen, setChosen] = useState<string | null>(null);
+  // The pick number we already answered. Clicks wait for the next offer, so a double click cannot pick twice.
+  const [sentAt, setSentAt] = useState<number | null>(null);
   const split = draft.style === "split";
   const offer = me ? draft.options[me] : [];
   const done = !me || playerDone(draft, me);
-  const live = chosen && offer.includes(chosen) ? chosen : null;
+  const made = me ? draft.picks[me] : 0;
 
   if (done) {
     return (
@@ -36,40 +36,22 @@ export function OfferPicker({ draft, me, opponent, onPick }: Props) {
     );
   }
 
-  const title = live ? "Ready" : split ? "Take one. They get the other." : "Keep one";
-
-  const tag = (id: string) => {
-    if (!live) return undefined;
-    if (id === live) return split ? "Yours" : "Keep";
-    return split ? "Theirs" : undefined;
-  };
-
-  const confirm = () => {
-    if (live) onPick(live);
-    setChosen(null);
+  const pick = (id: string) => {
+    if (sentAt === made) return;
+    setSentAt(made);
+    onPick(id);
   };
 
   return (
     <>
       <div className={styles.draftHead}>
-        <span className={styles.draftRound}>Pick {draft.picks[me!] + 1} of {draft.rounds}</span>
-        <h2>{title}</h2>
+        <span className={styles.draftRound}>Pick {made + 1} of {draft.rounds}</span>
+        <h2>{split ? "Take one. They get the other." : "Keep one"}</h2>
       </div>
-      <div className={`${styles.options} ${split ? styles.two : ""}`}>
+      <div className={`${styles.options} ${split ? styles.two : ""}`} data-testid="draft-offer">
         {offer.map((id) => (
-          <PowerCard
-            key={id}
-            id={id}
-            size="lg"
-            active={live === id}
-            crossed={!split && !!live && live !== id}
-            tag={tag(id)}
-            onClick={() => setChosen(live === id ? null : id)}
-          />
+          <PowerCard key={`${made}:${id}`} id={id} size="lg" onClick={() => pick(id)} />
         ))}
-      </div>
-      <div className={styles.draftActions}>
-        <Button variant="primary" onClick={confirm} disabled={!live} data-testid="draft-confirm">Confirm</Button>
       </div>
     </>
   );

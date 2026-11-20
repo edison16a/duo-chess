@@ -1,4 +1,4 @@
-// Superpowers: four Take & give picks, then the side to move fires a power and makes moves.
+// Superpowers: a Take & give draft, then the side to move fires a power and makes moves.
 const { launch, hostAndJoin, move, sq, pickMode } = require("./helpers.cjs");
 
 (async () => {
@@ -13,17 +13,12 @@ const { launch, hostAndJoin, move, sq, pickMode } = require("./helpers.cjs");
     await host.screenshot({ path: `${out}/sp-lobby.png` });
     await host.getByTestId("start").click();
     await host.getByTestId("draft").waitFor();
-    for (let i = 0; i < 4; i++) {
+    // Both draft at once and a click on a card takes it, so two picks each fill both hands.
+    for (let i = 0; i < 2; i++) {
       for (const page of [host, guest]) {
-        const confirm = page.getByTestId("draft-confirm");
-        if (await confirm.count()) {
-          const cards = page.getByTestId("draft").locator("[data-power]");
-          await cards.nth(0).click();
-          if (i === 0) await page.screenshot({ path: `${out}/sp-draft.png` });
-          await confirm.click();
-          await page.waitForTimeout(500);
-          break;
-        }
+        await page.getByTestId("draft-offer").locator("[data-power]").first().click();
+        if (i === 0 && page === host) await page.screenshot({ path: `${out}/sp-draft.png` });
+        await page.waitForTimeout(500);
       }
     }
     await host.getByTestId("board").waitFor({ timeout: 10000 });

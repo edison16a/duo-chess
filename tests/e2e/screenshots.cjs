@@ -1,6 +1,6 @@
 // Captures the README screenshots from real two player sessions.
 // Run against `npm run dev` with the local broker; writes to docs/screenshots.
-const { launch, hostAndJoin, move, sq, BASE, pickMode } = require("./helpers.cjs");
+const { launch, hostAndJoin, move, sq, BASE, pickMode, setOption } = require("./helpers.cjs");
 
 const OUT = "docs/screenshots";
 process.env.DSF = process.env.DSF || "2";
@@ -79,17 +79,17 @@ async function click3d(page, square) {
     await p.b.mouse.up({ button: "right" });
     await p.b.screenshot({ path: `${OUT}/board2d.png` });
 
-    // Superpowers draft and the three second hover preview.
-    r = await room(make, "superpowers");
+    // Triple draft after one pick, then the hover preview beside a card.
+    r = await room(make, "superpowers", (host) => setOption(host, "draft-style", "Triple draft"));
     await r.host.getByTestId("start").click();
     await r.host.getByTestId("draft").waitFor();
-    for (const page of [r.host, r.guest]) {
-      if (!(await page.getByTestId("draft-confirm").count())) continue;
-      const cards = page.getByTestId("draft").locator("[data-power]");
-      await cards.nth(0).click();
-      // Park the pointer so the clicked card does not open its 3D preview.
+    for (const page of [r.host]) {
+      await page.getByTestId("draft-offer").locator("[data-power]").first().click();
+      // Park the pointer so the next offer does not open a 3D preview under it.
       await page.mouse.move(5, 5);
+      await page.waitForTimeout(800);
       await page.screenshot({ path: `${OUT}/draft.png` });
+      const cards = page.getByTestId("draft-offer").locator("[data-power]");
       const third = await cards.nth(2).boundingBox();
       await page.mouse.move(third.x + 20, third.y + 20);
       await page.mouse.move(third.x + third.width / 2, third.y + third.height / 2, { steps: 5 });
