@@ -102,6 +102,11 @@ export function createStage(o: StageOptions): Stage {
       composer?.dispose();
       pmrem.dispose();
       renderer.dispose();
+      // dispose() keeps the WebGL context alive until garbage collection, and enough of those
+      // make the browser kill the oldest live one, which is usually the board. Let it go now.
+      renderer.forceContextLoss();
+      // A canvas whose context was released cannot host a new one, so callers mounting again need a fresh canvas.
+      o.canvas.dataset.released = "1";
     },
   };
 }

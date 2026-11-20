@@ -140,5 +140,8 @@ export class FxOverlay {
     cancelAnimationFrame(this.frame);
     [...this.oneShots, ...this.lasting.values()].forEach((e) => e.dispose());
     this.renderer.dispose();
+    // Free the context right away instead of at garbage collection (see contextBudget).
+    this.renderer.forceContextLoss();
+    this.renderer.domElement.dataset.released = "1";
   }
 }
