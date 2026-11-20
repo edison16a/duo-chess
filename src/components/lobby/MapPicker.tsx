@@ -16,7 +16,9 @@ interface Props {
 
 export function MapPicker({ mapId, customMap, disabled, onPick }: Props) {
   const [mine, setMine] = useState<ChessMap[]>([]);
-  useEffect(() => setMine(loadCustomMaps()), []);
+  useEffect(() => {
+    setMine(loadCustomMaps());
+  }, []);
   // Guests do not have the host's maps locally, so show the shared copy.
   const extra = customMap && !mine.some((m) => m.id === customMap.id) ? [customMap] : [];
   const maps = [...mine, ...extra, ...PREMADE_MAPS];

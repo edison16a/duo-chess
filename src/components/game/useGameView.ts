@@ -26,11 +26,15 @@ export function useGameView(handle: RoomHandle) {
   const [aiming, setAiming] = useState<{ power: string; squares: number[] } | null>(null);
   const [dropKind, setDropKind] = useState<PieceKind | null>(null);
 
-  useEffect(() => setTheme(loadTheme()), []);
+  useEffect(() => {
+    setTheme(loadTheme());
+  }, []);
 
   const serverGame = room.game!;
   // Drop the optimistic copy as soon as the host confirms anything.
-  useEffect(() => setPending(null), [serverGame.eventSeq]);
+  useEffect(() => {
+    setPending(null);
+  }, [serverGame.eventSeq]);
   const game = pending ?? serverGame;
   const pos = game.pos;
   const key = positionKey(pos);

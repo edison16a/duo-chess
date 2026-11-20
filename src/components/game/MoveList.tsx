@@ -34,7 +34,9 @@ function Entry({ entry, showRatings }: { entry: HistoryEntry; showRatings: boole
 /** Moves grouped by turn. Multi move turns and powers simply stack inside the same row. */
 export function MoveList({ history, showRatings }: { history: HistoryEntry[]; showRatings: boolean }) {
   const end = useRef<HTMLDivElement>(null);
-  useEffect(() => end.current?.scrollIntoView({ block: "nearest" }), [history.length]);
+  useEffect(() => {
+    end.current?.scrollIntoView({ block: "nearest" });
+  }, [history.length]);
 
   const rows: { n: number; w: HistoryEntry[]; b: HistoryEntry[] }[] = [];
   for (const entry of history) {

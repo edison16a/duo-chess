@@ -16,7 +16,9 @@ export function Home() {
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
 
-  useEffect(() => setName(playerName()), []);
+  useEffect(() => {
+    setName(playerName());
+  }, []);
 
   const host = () => {
     const room = newRoomCode();
