@@ -1,4 +1,5 @@
 import { CLOCK_PRESETS, MODE_BY_ID, MOVE_TIMER_PRESETS, type GameConfig, type Mods } from "@/features/modes";
+import { DRAFT_STYLES } from "@/features/powers/draft";
 import { Segmented, Toggle } from "@/components/ui/Controls";
 import { Icon, type IconName } from "@/components/ui/icons";
 import styles from "./lobby.module.css";
@@ -56,14 +57,25 @@ export function ModsPanel({ config, disabled, onChange }: Props) {
         />
       </Row>
       {mode.powers && (
-        <Row icon="sparkle" label="Draft picks">
-          <Segmented
-            options={[1, 2, 3, 4].map((n) => ({ label: `${n * 2} powers`, value: n }))}
-            value={config.draftRounds}
-            onChange={(draftRounds) => onChange({ draftRounds })}
-            disabled={disabled}
-          />
-        </Row>
+        <>
+          <Row icon="sparkle" label="Draft">
+            <Segmented
+              options={DRAFT_STYLES.map((s) => ({ label: s.label, value: s.id }))}
+              value={config.draftStyle ?? "split"}
+              onChange={(draftStyle) => onChange({ draftStyle })}
+              disabled={disabled}
+              testId="draft-style"
+            />
+          </Row>
+          <Row icon="sparkle" label="Powers each">
+            <Segmented
+              options={[2, 4, 6, 8].map((n) => ({ label: `${n}`, value: n }))}
+              value={config.powersEach ?? 4}
+              onChange={(powersEach) => onChange({ powersEach })}
+              disabled={disabled}
+            />
+          </Row>
+        </>
       )}
       <div className={styles.toggles}>
         <label className={styles.toggleRow}>
