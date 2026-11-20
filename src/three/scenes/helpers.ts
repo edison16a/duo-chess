@@ -43,7 +43,39 @@ export async function placeFen(stage: Stage, shape: BoardShape, rows: string, ma
 export function addBoard(stage: Stage, shape: BoardShape = { width: 8, height: 8 }): THREE.Group {
   const board = createBoard(shape);
   stage.scene.add(board);
+  dressStage(stage);
   return board;
+}
+
+let backdrop: THREE.Texture | null = null;
+
+/**
+ * Puts the board in a room instead of a void: a dark table top that takes
+ * shadows, a graded backdrop and a little depth fog.
+ */
+export function dressStage(stage: Stage): void {
+  if (stage.scene.getObjectByName("table")) return;
+  const table = new THREE.Mesh(new THREE.CircleGeometry(60, 64), new THREE.MeshStandardMaterial({ color: 0x1a1612, roughness: 0.85, metalness: 0.05 }));
+  table.rotation.x = -Math.PI / 2;
+  table.position.y = -0.36;
+  table.receiveShadow = true;
+  table.name = "table";
+  stage.scene.add(table);
+  if (!backdrop) {
+    const c = document.createElement("canvas");
+    c.width = 4; c.height = 256;
+    const g = c.getContext("2d")!;
+    const grad = g.createLinearGradient(0, 0, 0, 256);
+    grad.addColorStop(0, "#07080b");
+    grad.addColorStop(0.55, "#141820");
+    grad.addColorStop(1, "#1d1a17");
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 4, 256);
+    backdrop = new THREE.CanvasTexture(c);
+    backdrop.colorSpace = THREE.SRGBColorSpace;
+  }
+  stage.scene.background = backdrop;
+  stage.scene.fog = new THREE.Fog(0x15171c, 14, 34);
 }
 
 /** Slow orbit around a target, the default camera move for previews. */
