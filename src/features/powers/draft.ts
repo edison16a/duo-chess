@@ -57,16 +57,21 @@ function rollRarity(random: () => number) {
   return "rare" as const;
 }
 
-/** Distinct powers, each rolled by rarity first so the odds hold. */
-export function rollOptions(random: () => number, count = 3): string[] {
+/**
+ * Distinct powers, each rolled by rarity first so the odds hold. `exclude`
+ * keeps out powers already in a hand, so a Random style refill never hands
+ * you a second copy of something you hold.
+ */
+export function rollOptions(random: () => number, count = 3, exclude: string[] = []): string[] {
   const picked: string[] = [];
+  const taken = (id: string) => picked.includes(id) || exclude.includes(id);
   let guard = 0;
   while (picked.length < count && guard++ < 200) {
-    const pool = powersOfRarity(rollRarity(random)).filter((p) => !picked.includes(p.id));
+    const pool = powersOfRarity(rollRarity(random)).filter((p) => !taken(p.id));
     if (!pool.length) continue;
     picked.push(pool[Math.floor(random() * pool.length)].id);
   }
-  while (picked.length < count) picked.push(ALL_POWERS.find((p) => !picked.includes(p.id))!.id);
+  while (picked.length < count) picked.push(ALL_POWERS.find((p) => !taken(p.id))!.id);
   return picked;
 }
 
