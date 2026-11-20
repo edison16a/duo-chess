@@ -6,7 +6,7 @@
  */
 
 import type { RatingMark } from "@/features/fx";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Color, GameEvent, Position, RatingId } from "@/engine";
 import type { FxOverlay } from "@/three/overlay/FxOverlay";
 import styles from "./board.module.css";
@@ -29,10 +29,20 @@ export function FxCanvas({ pos, orientation, viewer, events, seq, rating, finale
   const rated = useRef(rating?.key ?? "");
   const latest = useRef({ pos, orientation, viewer });
   latest.current = { pos, orientation, viewer };
+  // Bumped when the browser takes the WebGL context away, which swaps in a fresh canvas.
+  const [generation, setGeneration] = useState(0);
 
   useEffect(() => {
     let alive = true;
     let observer: ResizeObserver | null = null;
+    const el = canvas.current;
+    // A canvas whose context we released earlier (Strict Mode mounts twice) cannot be reused.
+    if (el?.dataset.released) {
+      setGeneration((g) => g + 1);
+      return;
+    }
+    const lost = () => setTimeout(() => setGeneration((g) => g + 1), 100);
+    el?.addEventListener("webglcontextlost", lost);
     import("@/three/overlay/FxOverlay").then(({ FxOverlay }) => {
       if (!alive || !canvas.current) return;
       const fx = new FxOverlay(canvas.current);
@@ -45,11 +55,13 @@ export function FxCanvas({ pos, orientation, viewer, events, seq, rating, finale
     });
     return () => {
       alive = false;
+      // Off first: disposing releases the context on purpose, which must not count as a loss.
+      el?.removeEventListener("webglcontextlost", lost);
       observer?.disconnect();
       overlay.current?.dispose();
       overlay.current = null;
     };
-  }, []);
+  }, [generation]);
 
   useEffect(() => {
     overlay.current?.layout(pos.width, pos.height, orientation);
@@ -76,5 +88,5 @@ export function FxCanvas({ pos, orientation, viewer, events, seq, rating, finale
     width: `${100 + 200 / pos.width}%`,
     height: `${100 + 200 / pos.height}%`,
   };
-  return <canvas ref={canvas} className={styles.fxCanvas} style={style} aria-hidden />;
+  return <canvas key={generation} ref={canvas} className={styles.fxCanvas} style={style} aria-hidden />;
 }

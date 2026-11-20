@@ -22,6 +22,8 @@ export default function Board3D(props: BoardProps) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const scene = useRef<BoardScene | null>(null);
   const [ready, setReady] = useState(false);
+  // Bumped when the browser takes our WebGL context away, which swaps in a fresh canvas and scene.
+  const [generation, setGeneration] = useState(0);
 
   const premove = props.premove && !targeting && !dropKind ? props.premove : null;
   const ui = useInteraction({ pos, legal: premove ? premove.moves : legal, onMove: premove ? premove.onQueue : onMove, targeting, dropKind, autoQueen: !!premove });
@@ -30,28 +32,40 @@ export default function Board3D(props: BoardProps) {
   useBoard3DSync(scene, ready, props, ui, notes, premove?.queue ?? NO_PREMOVES);
 
   useEffect(() => {
-    const instance = new BoardScene(canvas.current!);
+    const el = canvas.current!;
+    // React may mount twice on the same canvas (Strict Mode); a released context means we need a new canvas.
+    if (el.dataset.released) {
+      setGeneration((g) => g + 1);
+      return;
+    }
+    const lost = () => setTimeout(() => setGeneration((g) => g + 1), 100);
+    el.addEventListener("webglcontextlost", lost);
+    const instance = new BoardScene(el);
     scene.current = instance;
     // Handle for end to end tests, which cannot see where 3D squares land on screen.
     (canvas.current as HTMLCanvasElement & { __scene?: BoardScene }).__scene = instance;
     instance.rig.setOrientation(orientation, true);
-    const fit = () => instance.resize(wrap.current!.clientWidth, wrap.current!.clientHeight);
+    // The observer can fire once more after unmount, when the wrapper is already gone.
+    const fit = () => wrap.current && instance.resize(wrap.current.clientWidth, wrap.current.clientHeight);
     fit();
     const observer = new ResizeObserver(fit);
     observer.observe(wrap.current!);
     setReady(true);
     return () => {
+      // Off first: disposing releases the context on purpose, which must not count as a loss.
+      el.removeEventListener("webglcontextlost", lost);
       observer.disconnect();
       instance.dispose();
       scene.current = null;
       setReady(false);
     };
-    // The scene is created once; orientation changes are animated by the sync hook.
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // The scene is created once per canvas; orientation changes are animated by the sync hook.
+  }, [generation]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div ref={wrap} className={styles.wrap} data-testid="board3d">
       <canvas
+        key={generation}
         ref={canvas}
         className={styles.canvas}
         onPointerDown={pointer.onPointerDown}
