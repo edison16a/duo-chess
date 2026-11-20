@@ -56,9 +56,15 @@ export function SceneView({ load, capture = false, className, onReady }: Props) 
         renderAt(0);
         window.__sceneReady = true;
       } else {
-        const start = performance.now();
+        // Scene time advances by the same clamped step the effects integrate with. On a slow device the
+        // clip then plays in slow motion as a whole, instead of cues racing ahead of bursts that still linger.
+        let clock = 0;
+        let before = performance.now();
         const loop = () => {
-          renderAt((performance.now() - start) / 1000);
+          const now = performance.now();
+          clock += Math.min(0.05, (now - before) / 1000);
+          before = now;
+          renderAt(clock);
           frame = requestAnimationFrame(loop);
         };
         loop();
