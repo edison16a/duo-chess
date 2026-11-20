@@ -9,7 +9,7 @@ export const MODES: ModeDef[] = [
   {
     id: "superpowers", name: "Superpowers", blurb: "Draft powers, then break the rules.", analysis: "internal", powers: true, rules: {},
     howTo: [
-      "Before the game you draft powers. Take & give: take one of two, your opponent gets the other. Triple draft: keep one of three. Free deck: build your own hand on a point budget.",
+      "Before the game you draft powers. Take & give: take one of two, your opponent gets the other. Triple draft: keep one of three. Free deck: build your own hand on a point budget. Random: no draft, and a used power comes back as a new one after a few turns.",
       "On your turn you can fire one power. Some are free, some use up your move.",
       "Powers never target kings directly.",
     ],
