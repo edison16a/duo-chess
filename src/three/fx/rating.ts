@@ -12,7 +12,8 @@ import { FxBase, pulse, v3 } from "./base";
 import { groundRing } from "./combat";
 import { beamMaterial } from "./shaders";
 
-const COLORS: Record<RatingId, string> = {
+/** Hex versions of the rating colours, for canvases and shaders that cannot read CSS variables. */
+export const RATING_HEX: Record<RatingId, string> = {
   legendary: "#ffc94a", brilliant: "#1fc7c1", great: "#5b8cf0", best: "#7cc05a", excellent: "#8cc46b",
   good: "#9bb08d", inaccuracy: "#f0c045", mistake: "#f08c35", blunder: "#e5484d",
 };
@@ -27,7 +28,7 @@ export class RatingFx extends FxBase {
 
   constructor(private id: RatingId, private pieceHeight = 1.1) {
     super(id === "legendary" ? 2.6 : 1.9);
-    this.color = COLORS[id];
+    this.color = RATING_HEX[id];
     this.ring = groundRing(this, this.color, (t) => this.own(t));
     this.aura = this.glow(this.color, pieceHeight * 1.8, 0.8);
     this.aura.position.y = pieceHeight * 0.55;

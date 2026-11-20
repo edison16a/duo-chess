@@ -9,13 +9,13 @@ import type { Effect } from "./base";
 import { CapturePuff, Explosion, Lightning, Shatter } from "./combat";
 import { EarthErupt, FireBurst, FrostBurst, SmokeCloud } from "./elements";
 import { ArcaneCircle, HolyBeam, RainbowBurst, ShieldPulse, SpeedLines, VoidRift, WarpSwirl } from "./magic";
-import { CheckGlow, RatingFx } from "./rating";
+import { CheckGlow, RATING_HEX, RatingFx } from "./rating";
 
 export type { Effect, FxContext } from "./base";
 export { IceEncase } from "./ice";
 export { GhostAura, Halo, PoisonBubbles, ShieldDome, SmokeVeil } from "./status";
 export { IceWall, Mine, Portal } from "./terrain";
-export { RatingFx, CheckGlow };
+export { RatingFx, CheckGlow, RATING_HEX };
 
 /** An effect plus the square it belongs to (-1 means the board centre). */
 export interface Placed {

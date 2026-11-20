@@ -8,7 +8,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Color, GameEvent, Position } from "@/engine";
-import { sfx } from "@/features/audio/sounds";
+import { playEventSounds as playSounds } from "@/features/audio/eventSounds";
 import { POWERS } from "@/features/powers";
 import { POWER_ICONS } from "@/features/powers/icons";
 import { RARITY_COLOR } from "@/features/powers/rarity";
@@ -49,17 +49,6 @@ function bursts(events: GameEvent[]): Burst[] {
     }
   }
   return out;
-}
-
-function playSounds(events: GameEvent[]): void {
-  const types = new Set(events.map((e) => e.type));
-  const power = events.find((e) => e.type === "power");
-  if (power && power.type === "power" && POWERS[power.power]) sfx.power(POWERS[power.power].vfx);
-  if (types.has("explosion") || types.has("mine")) sfx.explosion();
-  else if (types.has("check")) sfx.check();
-  else if (types.has("castle")) sfx.castle();
-  else if (types.has("capture") || types.has("destroy")) sfx.capture();
-  else if (types.has("move")) sfx.move();
 }
 
 export function Effects({ pos, orientation, events, seq, onShake }: { pos: Position; orientation: Color; events: GameEvent[]; seq: number; onShake: () => void }) {
