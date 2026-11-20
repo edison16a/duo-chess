@@ -1,4 +1,4 @@
-// Superpowers: draft four picks, then the side to move fires a power and makes moves.
+// Superpowers: four Take & give picks, then the side to move fires a power and makes moves.
 const { launch, hostAndJoin, move, sq, pickMode } = require("./helpers.cjs");
 
 (async () => {
@@ -19,7 +19,6 @@ const { launch, hostAndJoin, move, sq, pickMode } = require("./helpers.cjs");
         if (await confirm.count()) {
           const cards = page.getByTestId("draft").locator("[data-power]");
           await cards.nth(0).click();
-          await cards.nth(1).click();
           if (i === 0) await page.screenshot({ path: `${out}/sp-draft.png` });
           await confirm.click();
           await page.waitForTimeout(500);

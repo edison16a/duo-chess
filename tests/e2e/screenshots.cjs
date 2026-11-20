@@ -87,7 +87,6 @@ async function click3d(page, square) {
       if (!(await page.getByTestId("draft-confirm").count())) continue;
       const cards = page.getByTestId("draft").locator("[data-power]");
       await cards.nth(0).click();
-      await cards.nth(1).click();
       // Park the pointer so the clicked card does not open its 3D preview.
       await page.mouse.move(5, 5);
       await page.screenshot({ path: `${OUT}/draft.png` });
