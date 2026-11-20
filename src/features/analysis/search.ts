@@ -1,138 +1,108 @@
 /**
- * Minimax with alpha beta for any rule set the engine supports. Scores are
- * always from White's view and the maximizing side is whoever is to move,
- * which makes double and triple move turns work without special cases.
+ * Root of the built in search, used for every rule set Stockfish cannot
+ * play and by the bot in those modes. It deepens one ply at a time and
+ * keeps the last iteration that finished inside the budget, so a busy
+ * position gives a shallower but consistent answer instead of a mix of
+ * deep scores and half searched garbage.
  */
 
-import {
-  afterMove, inCheck, isCapture, legalMoves, makeMove, opposite, royalSquares, hillSquares, PIECES,
-  type Color, type Move, type Position,
-} from "@/engine";
-import { evaluate } from "./evaluate";
+import { afterMove, inCheck, legalMoves, makeMove, opposite, type Move, type Position } from "@/engine";
+import { Ordering } from "./ordering";
+import { MATE, isMateScore } from "./terminal";
+import { Abort, childScore, negamax, nextDepth, type Ctx, type Made } from "./tree";
 
-export const MATE = 100000;
+export { MATE, isMateScore };
 
 export interface RootScore {
   move: Move;
+  /** Centipawns from White's view. */
   score: number;
 }
 
-interface Ctx {
-  nodes: number;
-  limit: number;
+/** Rough cost of one more ply compared to the last one, after alpha beta. */
+const GROWTH = 4;
+
+export interface SearchLimits {
+  /** Total nodes for the whole search, across all iterations. */
+  nodes?: number;
+  /** Wall clock budget in milliseconds. Only used where timing does not matter for tests. */
+  timeMs?: number;
 }
 
-/** Game over checks that are cheap enough to run at every node. */
-function terminal(pos: Position, mover: Color, ply: number): number | null {
-  const win = (c: Color) => (c === "w" ? 1 : -1) * (MATE - ply);
-  for (const c of ["w", "b"] as Color[]) {
-    if (pos.royalStart[c] && royalSquares(pos, c).length === 0) return win(opposite(c));
-  }
-  if (pos.rules.giveaway) {
-    for (const c of ["w", "b"] as Color[]) if (!pos.board.some((p) => p?.color === c)) return win(c);
-  } else {
-    for (const c of ["w", "b"] as Color[]) {
-      if (!pos.royalStart[c] && !pos.board.some((p) => p?.color === c)) return win(opposite(c));
-    }
-  }
-  if (pos.rules.kingOfTheHill) {
-    const hill = new Set(hillSquares(pos));
-    if (royalSquares(pos, mover).some((s) => hill.has(s))) return win(mover);
-  }
-  if (pos.rules.checksToWin > 0 && pos.checks[mover] >= pos.rules.checksToWin) return win(mover);
-  return null;
-}
-
-/** Captures first, biggest victim first, so alpha beta cuts more. */
-function order(pos: Position, moves: Move[]): Move[] {
-  const weight = (m: Move) => {
-    if (!isCapture(pos, m)) return m.promotion ? 800 : 0;
-    const victim = pos.board[m.epVictim ?? m.to];
-    const attacker = pos.board[m.from];
-    return 1000 + (victim ? PIECES[victim.kind].value : 100) - (attacker ? PIECES[attacker.kind].value / 10 : 0);
-  };
-  return moves.slice().sort((a, b) => weight(b) - weight(a));
-}
-
+/** The exact position after a move, turn bookkeeping included. */
 export function child(pos: Position, move: Move): Position {
+  return made(pos, move).pos;
+}
+
+function made(pos: Position, move: Move): Made {
   const mover = pos.turn;
   const { pos: next } = makeMove(pos, move);
-  const gaveCheck = next.rules.checkRules && inCheck(next, opposite(mover));
-  if (gaveCheck) next.checks[mover]++;
-  afterMove(next, gaveCheck, []);
-  return next;
+  const check = next.rules.checkRules && inCheck(next, opposite(mover));
+  if (check) next.checks[mover]++;
+  afterMove(next, check, []);
+  return { pos: next, check };
+}
+
+/** One full width pass over every root move at a fixed depth. */
+function iterate(pos: Position, roots: Made[], moves: Move[], depth: number, ctx: Ctx): RootScore[] {
+  const sign = pos.turn === "w" ? 1 : -1;
+  ctx.maxPly = depth * 2;
+  return moves.map((move, i) => {
+    const recurse = (n: Position, a: number, b: number, c: boolean) => negamax(n, nextDepth(depth, 0, c, ctx), a, b, 1, ctx, c, n.turn === pos.turn);
+    const score = childScore(pos, roots[i], 0, -Infinity, Infinity, recurse);
+    return { move, score: sign * score };
+  });
 }
 
 /**
- * Keeps resolving captures past the search horizon. Without it the engine
- * stops mid trade and calls quiet moves blunders, which is especially bad
- * in atomic where every capture swings a lot of material.
+ * Scores every root move, best first, from White's view. Every move gets a
+ * full window because classification needs the played move's real score
+ * and the gap between the best and second best, not just the best move.
+ * Depth one always completes; deeper passes stop at the budget.
  */
-function quiesce(pos: Position, alpha: number, beta: number, ply: number, ctx: Ctx, depthLeft: number): number {
-  ctx.nodes++;
-  const stand = evaluate(pos);
-  if (depthLeft <= 0 || ctx.nodes > ctx.limit) return stand;
-  const maximizing = pos.turn === "w";
-  if (maximizing ? stand >= beta : stand <= alpha) return stand;
-  if (maximizing) alpha = Math.max(alpha, stand);
-  else beta = Math.min(beta, stand);
-  let best = stand;
-  const captures = legalMoves(pos).filter((m) => isCapture(pos, m));
-  for (const move of order(pos, captures)) {
-    const next = child(pos, move);
-    const score = terminal(next, pos.turn, ply + 1) ?? quiesce(next, alpha, beta, ply + 1, ctx, depthLeft - 1);
-    if (maximizing) { best = Math.max(best, score); alpha = Math.max(alpha, score); }
-    else { best = Math.min(best, score); beta = Math.min(beta, score); }
-    if (beta <= alpha) break;
-  }
-  return best;
-}
+export function scoreRootMoves(pos: Position, depth = 3, nodeLimit = 150000, limits: SearchLimits = {}): RootScore[] {
+  const deadline = limits.timeMs === undefined ? Infinity : Date.now() + limits.timeMs;
+  const ctx: Ctx = { nodes: 0, limit: Infinity, deadline: Infinity, order: new Ordering(pos.board.length), maxPly: 2 };
+  let moves = legalMoves(pos);
+  const roots = new Map(moves.map((m) => [m, made(pos, m)]));
+  const sign = pos.turn === "w" ? 1 : -1;
+  const sorted = (scores: RootScore[]) => scores.slice().sort((a, b) => sign * (b.score - a.score));
 
-function search(pos: Position, depth: number, alpha: number, beta: number, ply: number, ctx: Ctx): number {
-  ctx.nodes++;
-  if (depth <= 0 || ctx.nodes > ctx.limit) return quiesce(pos, alpha, beta, ply, ctx, 4);
-  const moves = legalMoves(pos);
-  if (moves.length === 0) {
-    const side = pos.turn;
-    if (pos.rules.giveaway || pos.rules.duck) return (side === "w" ? 1 : -1) * (MATE - ply);
-    if (pos.rules.checkRules && inCheck(pos, side)) return (side === "w" ? -1 : 1) * (MATE - ply);
-    return 0;
-  }
-
-  const maximizing = pos.turn === "w";
-  let best = maximizing ? -Infinity : Infinity;
-  for (const move of order(pos, moves)) {
-    const next = child(pos, move);
-    const end = terminal(next, pos.turn, ply + 1);
-    const score = end ?? search(next, depth - 1, alpha, beta, ply + 1, ctx);
-    if (maximizing) {
-      best = Math.max(best, score);
-      alpha = Math.max(alpha, score);
-    } else {
-      best = Math.min(best, score);
-      beta = Math.min(beta, score);
+  let best = sorted(iterate(pos, moves.map((m) => roots.get(m)!), moves, 1, ctx));
+  let settled = endsTurn(pos, 1) ? { depth: 1, scores: best } : null;
+  let reached = 1;
+  ctx.limit = limits.nodes ?? nodeLimit;
+  ctx.deadline = deadline;
+  for (let d = 2; d <= depth; d++) {
+    // A forced mate found at a shallower depth will not get any better.
+    if (best.length && isMateScore(best[0].score) && sign * best[0].score > 0) break;
+    moves = best.map((s) => s.move);
+    const startNodes = ctx.nodes, startTime = Date.now();
+    try {
+      best = sorted(iterate(pos, moves.map((m) => roots.get(m)!), moves, d, ctx));
+      reached = d;
+      if (endsTurn(pos, d)) settled = { depth: d, scores: best };
+    } catch (error) {
+      if (error instanceof Abort) break;
+      throw error;
     }
-    if (beta <= alpha) break;
+    // Each ply costs several times the last one. Skip a pass that cannot finish anyway.
+    const nodes = ctx.nodes - startNodes, ms = Date.now() - startTime;
+    if (ctx.nodes + nodes * GROWTH > ctx.limit || Date.now() + ms * GROWTH > ctx.deadline) break;
   }
-  return best;
+  // One ply shallower is a fair price for a clean horizon; two plies would hide real tactics.
+  return settled && reached - settled.depth <= 1 ? settled.scores : best;
 }
 
 /**
- * Scores every root move. Classification needs the played move's score
- * and the gap between the best and second best, so we search all of them
- * with a full window instead of just finding the best.
+ * Whether a search this deep stops between turns. In double and triple
+ * move chess a horizon in the middle of a turn lets the side with moves
+ * left grab things for free, which made quiet opening moves look like
+ * mistakes. So we prefer a pass that ends on a turn boundary when it is
+ * at most one ply shallower than the deepest one.
  */
-export function scoreRootMoves(pos: Position, depth = 3, nodeLimit = 150000): RootScore[] {
-  const out: RootScore[] = [];
-  const moves = order(pos, legalMoves(pos));
-  for (const move of moves) {
-    // Each root move gets the same budget so late moves are not starved.
-    const ctx: Ctx = { nodes: 0, limit: nodeLimit / Math.max(1, moves.length) };
-    const next = child(pos, move);
-    const end = terminal(next, pos.turn, 1);
-    const score = end ?? search(next, depth - 1, -Infinity, Infinity, 1, ctx);
-    out.push({ move, score });
-  }
-  const sign = pos.turn === "w" ? -1 : 1;
-  return out.sort((a, b) => sign * (a.score - b.score));
+function endsTurn(pos: Position, depth: number): boolean {
+  const perTurn = pos.rules.movesPerTurn;
+  if (perTurn <= 1) return true;
+  return depth >= pos.movesLeft && (depth - pos.movesLeft) % perTurn === 0;
 }

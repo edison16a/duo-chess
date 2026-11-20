@@ -21,4 +21,6 @@ export const RATINGS: Record<RatingId, RatingInfo> = {
   inaccuracy: { id: "inaccuracy", label: "Inaccuracy", glyph: "?!", color: "var(--rate-inaccuracy)", dramatic: false },
   mistake: { id: "mistake", label: "Mistake", glyph: "?", color: "var(--rate-mistake)", dramatic: true },
   blunder: { id: "blunder", label: "Blunder", glyph: "??", color: "var(--rate-blunder)", dramatic: true },
+  // A known opening move. Until globals.css defines the variable, the tan chess.com uses shows instead.
+  book: { id: "book", label: "Book", glyph: "📖", color: "var(--rate-book, #a88865)", dramatic: false },
 };

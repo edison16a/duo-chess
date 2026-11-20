@@ -1,7 +1,7 @@
 /** Promise wrapper around the search worker. */
 
 import type { Position } from "@/engine";
-import type { RootScore } from "./search";
+import type { RootScore, SearchLimits } from "./search";
 
 export class InternalEngine {
   private worker: Worker;
@@ -16,11 +16,12 @@ export class InternalEngine {
     };
   }
 
-  scoreMoves(pos: Position, depth: number): Promise<RootScore[] | null> {
+  /** Without limits the search uses its default node budget, which is what the bot wants. */
+  scoreMoves(pos: Position, depth: number, limits?: SearchLimits): Promise<RootScore[] | null> {
     const id = this.nextId++;
     return new Promise((resolve) => {
       this.pending.set(id, resolve);
-      this.worker.postMessage({ id, pos, depth });
+      this.worker.postMessage({ id, pos, depth, limits });
     });
   }
 
