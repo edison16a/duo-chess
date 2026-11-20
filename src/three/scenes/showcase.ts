@@ -33,7 +33,24 @@ export function closeup(kind: string): SceneDef {
       a.position.set(-0.5, 0, 0.5);
       b.position.set(0.5, 0, -0.5);
       stage.scene.add(a, b);
-      return { update: (t) => orbit(stage, t, { radius: 2.6, height: 1.4, speed: 0.4, target: new THREE.Vector3(0, 0.5, 0) }) };
+      return { update: (t) => orbit(stage, t, { radius: 3.1, height: 1.7, speed: 0.4, target: new THREE.Vector3(0, 0.42, 0) }) };
+    },
+  };
+}
+
+/** A tighter close up than `closeup`, for judging the details of a sculpted model. */
+export function portrait(kind: string): SceneDef {
+  return {
+    duration: 16,
+    bloom: 0.1,
+    async setup(stage) {
+      addBoard(stage, { width: 2, height: 2 });
+      const a = await createPiece(kind as PieceKind, "w");
+      const b = await createPiece(kind as PieceKind, "b");
+      a.position.set(-0.35, 0, 0.35);
+      b.position.set(0.35, 0, -0.35);
+      stage.scene.add(a, b);
+      return { update: (t) => orbit(stage, t, { radius: 2.1, height: 1.15, speed: 0.4, target: new THREE.Vector3(0, 0.45, 0) }) };
     },
   };
 }

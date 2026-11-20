@@ -2,6 +2,7 @@ import { closeup, portrait, showcase } from "./showcase";
 import type { SceneDef } from "./types";
 import { FX_LAB, fxLab } from "./fxLab";
 import { MODE_SCENES } from "./modes";
+import { battlefield } from "./battlefield";
 import { POWER_SCENE_IDS, powerScene } from "./powers";
 
 /** Every scene the render route can show, by name ("mode:atomic", "power:frostbite", ...). */
@@ -10,6 +11,7 @@ export const SCENES: Record<string, () => Promise<SceneDef>> = {
   ...Object.fromEntries(POWER_SCENE_IDS.map((id) => [`power:${id}`, async () => powerScene(id)])),
   ...Object.fromEntries(Object.keys(FX_LAB).map((k) => [`fx:${k}`, async () => fxLab(k)])),
   showcase: async () => showcase,
+  battlefield: async () => battlefield,
   ...Object.fromEntries([
     "pawn", "rook", "bishop", "queen", "king", "knight", "archbishop", "chancellor", "amazon", "dragon", "rail", "camel", "zebra",
     "nightrider", "cannon", "grasshopper", "wizard", "champion", "centaur", "mann", "bomb", "phoenix", "duck",
