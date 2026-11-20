@@ -126,3 +126,9 @@
   60% { translate: -4px -2px; }
   80% { translate: 3px 2px; }
 }
+
+/* Low detail effects: a square glows in the effect's colour and fades out. */
+.flash { background: var(--flash); opacity: 0.6; animation: flash 0.85s ease-out forwards; pointer-events: none; z-index: 4; }
+@keyframes flash { 0% { opacity: 0.75; } 35% { opacity: 0.6; } 100% { opacity: 0; } }
+/* With reduced motion the square just stays tinted until the layer clears it. */
+@media (prefers-reduced-motion: reduce) { .flash { animation: none; } }

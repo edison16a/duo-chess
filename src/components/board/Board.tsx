@@ -3,7 +3,9 @@
 import { useMemo, useRef, useState } from "react";
 import { FILES, positionKey, type Color, type GameEvent, type Move, type PieceKind, type Position, type RatingId } from "@/engine";
 import { ArrowLayer, MarkLayer, PremoveLayer } from "./Annotations";
+import type { FxLevel } from "@/features/fx";
 import { Effects } from "./Effects";
+import { FlashLayer } from "./FlashLayer";
 import { FxCanvas } from "./FxCanvas";
 import { cellOf, cellStyle, isLightSquare } from "./layout";
 import { FogLayer, HintLayer, UnderLayer } from "./Overlays";
@@ -36,12 +38,17 @@ export interface BoardProps {
   rating: { square: number; id: RatingId; key: string } | null;
   /** Set while you may queue a premove (your opponent is to move). */
   premove?: PremoveControl | null;
+  /** Low swaps the 3D effects for square flashes and drops the shake. */
+  fx?: FxLevel;
 }
+
+const noShake = () => {};
 
 export function Board(props: BoardProps) {
   const { pos, orientation, viewer, theme, legal, onMove, targeting, dropKind } = props;
   const ref = useRef<HTMLDivElement>(null);
   const [shaking, setShaking] = useState(false);
+  const lite = props.fx === "low";
   // Premoves reuse the normal click and drag flow, fed with premove targets.
   const premove = props.premove && !targeting && !dropKind ? props.premove : null;
   const ui = useInteraction({
@@ -100,10 +107,11 @@ export function Board(props: BoardProps) {
       <HintLayer {...props} selected={ui.selected} targets={new Set(ui.targets.keys())} duckSquares={ui.duckSquares} aimSquares={aimSquares} aimColor={targeting?.color ?? null} />
       <FogLayer pos={pos} orientation={orientation} visible={visible} />
       <ArrowLayer pos={pos} orientation={orientation} arrows={notes.arrows} drawing={notes.drawing} />
-      <Effects events={props.events} seq={props.eventSeq} onShake={() => { setShaking(true); setTimeout(() => setShaking(false), 450); }} />
+      {lite && <FlashLayer pos={pos} orientation={orientation} events={props.events} seq={props.eventSeq} />}
+      <Effects events={props.events} seq={props.eventSeq} onShake={lite ? noShake : () => { setShaking(true); setTimeout(() => setShaking(false), 450); }} />
       {ui.promotion && <PromotionPicker moves={ui.promotion.moves} color={pos.turn} onPick={ui.choosePromotion} />}
     </div>
-    <FxCanvas pos={pos} orientation={orientation} viewer={viewer} events={props.events} seq={props.eventSeq} rating={props.rating} />
+    {!lite && <FxCanvas pos={pos} orientation={orientation} viewer={viewer} events={props.events} seq={props.eventSeq} rating={props.rating} />}
     </div>
   );
 }
