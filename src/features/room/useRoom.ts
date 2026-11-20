@@ -13,7 +13,8 @@ import { clientId, isHosting, playerName } from "./identity";
 import { createRoom } from "./reducer";
 import type { RoomAction, RoomState } from "./types";
 
-export type RoomStatus = "connecting" | "ready" | "missing" | "closed";
+/** "taken": this tab meant to host, but someone else's live room already has the code. */
+export type RoomStatus = "connecting" | "ready" | "missing" | "closed" | "taken";
 
 /** Actions as the UI sends them; the hook stamps the player id on. */
 export type ClientAction = RoomAction extends infer A ? (A extends { id: string } ? Omit<A, "id"> : never) : never;
@@ -74,6 +75,11 @@ export function useRoom(code: string): RoomHandle {
         }
         retained = state;
         if (wantsHost && state.hostId === myId) return;
+        // A fresh host never joins a stranger's room that happens to share the code.
+        if (wantsHost && state.hostId !== myId) {
+          setStatus("taken");
+          return;
+        }
         roomRef.current = state;
         setRoom(state);
         setHostOffset(Date.now() - state.updatedAt);
@@ -94,7 +100,7 @@ export function useRoom(code: string): RoomHandle {
         // Give the broker a moment to deliver a retained snapshot we can resume from.
         setTimeout(() => {
           if (disposed || hostRef.current) return;
-          if (retained && retained.hostId !== myId) return;
+          if (retained && retained.hostId !== myId) { setStatus("taken"); return; }
           becomeHost(retained ?? createRoom(code, myId, playerName(), Date.now()));
         }, RETAINED_WAIT_MS);
       },

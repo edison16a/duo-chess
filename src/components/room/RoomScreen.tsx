@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { newRoomCode } from "@/features/net/roomCode";
+import { markHosting } from "@/features/room/identity";
 import { useRoom } from "@/features/room/useRoom";
 import { sfx } from "@/features/audio/sounds";
 import { GameView } from "@/components/game/GameView";
@@ -23,6 +26,15 @@ export function RoomScreen({ code }: { code: string }) {
   const handle = useRoom(code);
   const { room, status } = handle;
   const count = room?.players.length ?? 0;
+
+  // Someone else's room already holds the code we rolled, so roll a new one.
+  const router = useRouter();
+  useEffect(() => {
+    if (status !== "taken") return;
+    const next = newRoomCode();
+    markHosting(next);
+    router.replace(`/room/${next}`);
+  }, [status, router]);
 
   // Chime when someone joins the room.
   useEffect(() => {
