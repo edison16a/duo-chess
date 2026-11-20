@@ -9,7 +9,7 @@ import type { Move, Position } from "./types";
 export function moveToSan(pos: Position, move: Move): string {
   let san: string;
   if (move.drop) {
-    san = `${PIECES[move.drop].letter}@${squareName(pos, move.to)}`;
+    san = `${PIECES[move.drop].letter || "P"}@${squareName(pos, move.to)}`;
   } else if (move.castle) {
     san = move.castle.rookFrom > move.from ? "O-O" : "O-O-O";
   } else {
