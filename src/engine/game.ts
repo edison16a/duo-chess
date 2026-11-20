@@ -16,7 +16,7 @@ import type { Color, GameEvent, GameResult, Move, PieceKind, Position } from "./
 
 export type RatingId =
   | "legendary" | "brilliant" | "great" | "best" | "excellent" | "good"
-  | "inaccuracy" | "mistake" | "blunder";
+  | "inaccuracy" | "mistake" | "blunder" | "book";
 
 export interface HistoryEntry {
   ply: number;

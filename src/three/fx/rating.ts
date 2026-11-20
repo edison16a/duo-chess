@@ -16,6 +16,7 @@ import { beamMaterial } from "./shaders";
 export const RATING_HEX: Record<RatingId, string> = {
   legendary: "#ffc94a", brilliant: "#1fc7c1", great: "#5b8cf0", best: "#7cc05a", excellent: "#8cc46b",
   good: "#9bb08d", inaccuracy: "#f0c045", mistake: "#f08c35", blunder: "#e5484d",
+  book: "#a88865",
 };
 
 export class RatingFx extends FxBase {
