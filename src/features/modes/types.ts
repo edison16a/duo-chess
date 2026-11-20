@@ -47,7 +47,8 @@ export interface Mods {
 }
 
 export const DEFAULT_MODS: Mods = {
-  clock: { minutes: 5, increment: 3 },
+  // Unlimited time unless the players pick a clock.
+  clock: null,
   ratings: "board",
   evalBar: false,
   moveTimer: 0,
