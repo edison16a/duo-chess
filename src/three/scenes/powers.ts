@@ -21,16 +21,18 @@ const FEN = "8/2p1kp2/2n5/3b4/3N4/2P1Q3/3K4/8";
 interface Plan {
   at: string;
   then?: (d: Director) => void;
+  /** When the still poster looks best: after ice forms, at the moment of impact, and so on. */
+  poster?: number;
 }
 
 type Lasting = Parameters<Director["attach"]>[0];
-const lasting = (make: () => Lasting, at: string): Plan => ({ at, then: (d) => d.attach(make(), at, true) });
-const destroy = (at: string): Plan => ({ at, then: (d) => { d.kill(at); d.fx(new Shatter(at === "c3" ? "#e9dfcd" : "#3a3634"), at); } });
-const relocate = (from: string, to: string): Plan => ({ at: from, then: (d) => { d.fx(new WarpSwirl(), to); d.move(from, to, 0.35, 0.6); } });
-const morph = (at: string, kind: PieceKind, color: "w" | "b"): Plan => ({ at, then: (d) => d.morph(at, kind, color) });
-const summon = (at: string, kind: PieceKind): Plan => ({ at, then: (d) => void d.spawn(kind, "w", at) });
-const terrain = (make: () => Lasting, at: string): Plan => ({ at, then: (d) => d.attach(make(), at) });
-const burst = (at: string): Plan => ({ at });
+const lasting = (make: () => Lasting, at: string): Plan => ({ at, poster: 1.7, then: (d) => d.attach(make(), at, true) });
+const destroy = (at: string): Plan => ({ at, poster: 0.62, then: (d) => { d.kill(at); d.fx(new Shatter(at === "c3" ? "#e9dfcd" : "#3a3634"), at); } });
+const relocate = (from: string, to: string): Plan => ({ at: from, poster: 1.0, then: (d) => { d.fx(new WarpSwirl(), to); d.move(from, to, 0.35, 0.6); } });
+const morph = (at: string, kind: PieceKind, color: "w" | "b"): Plan => ({ at, poster: 1.4, then: (d) => d.morph(at, kind, color) });
+const summon = (at: string, kind: PieceKind): Plan => ({ at, poster: 1.4, then: (d) => void d.spawn(kind, "w", at) });
+const terrain = (make: () => Lasting, at: string): Plan => ({ at, poster: 1.6, then: (d) => d.attach(make(), at) });
+const burst = (at: string): Plan => ({ at, poster: 0.75 });
 
 const PLANS: Record<string, Plan> = {
   frostbite: lasting(() => new IceEncase(1.0), "d5"), "deep-freeze": lasting(() => new IceEncase(1.2), "e7"), blizzard: lasting(() => new IceEncase(1.0), "c6"),
@@ -49,13 +51,21 @@ const PLANS: Record<string, Plan> = {
   "double-down": burst("d4"), overclock: burst("d4"), infinity: burst("e3"),
 };
 
+function focus(square: string): [number, number, number] {
+  const x = "abcdefgh".indexOf(square[0]) - 3.5;
+  const z = 3.5 - (Number(square[1]) - 1);
+  return [x * 0.85, 0.45, z * 0.85];
+}
+
 export function powerScene(id: string): SceneDef {
   const plan = PLANS[id] ?? burst("d4");
   return scripted({
     duration: 3.2,
     fen: FEN,
     bloom: 0.55,
-    camera: { radius: 4.8, height: 3.7, speed: 0.06, start: 0.8, target: [-0.45, 0.3, -0.55] },
+    poster: plan.poster ?? 0.85,
+    // Aim the camera at the square the power lands on, so every card frames its own action.
+    camera: { radius: 4.1, height: 3.1, speed: 0.07, start: -0.55, target: focus(plan.at) },
     cues: [
       cue(0.35, (d) => powerEffects(id).forEach((fx) => d.fx(fx, plan.at))),
       cue(0.75, (d) => plan.then?.(d)),
