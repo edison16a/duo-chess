@@ -4,6 +4,7 @@ import { useState } from "react";
 import { opposite, type Color } from "@/engine";
 import { fxLevel, ratingsShow } from "@/features/fx";
 import { MODE_BY_ID } from "@/features/modes";
+import { handView } from "@/features/powers";
 import type { RoomHandle } from "@/features/room/useRoom";
 import dynamic from "next/dynamic";
 import { Board, type BoardProps } from "@/components/board/Board";
@@ -132,8 +133,8 @@ export function GameView({ handle }: { handle: RoomHandle }) {
         {game.powers && (
           <PowerBar
             me={me}
-            mine={me ? game.powers.inventory[me] : game.powers.inventory.w}
-            theirs={me ? game.powers.inventory[opposite(me)] : game.powers.inventory.b}
+            mine={handView(game, me ?? "w")}
+            theirs={handView(game, me ? opposite(me) : "b")}
             canUse={v.canUsePower}
             aiming={v.aiming}
             onPick={v.pickPower}
