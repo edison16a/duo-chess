@@ -30,7 +30,7 @@ export const MODES: ModeDef[] = [
     howTo: ["You make three moves per turn. Giving check ends your turn right away."],
   },
   {
-    id: "lightning", name: "Lightning", blurb: "One second per move or a random move is played.", analysis: "stockfish", moveTimer: 1, rules: {},
+    id: "lightning", name: "Lightning", blurb: "One second per move. Hesitate and it moves for you.", analysis: "stockfish", moveTimer: 1, rules: {},
     howTo: ["Standard rules, but you get one second per move. Run out and a random legal move is played for you."],
   },
   {
