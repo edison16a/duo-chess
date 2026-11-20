@@ -1,0 +1,35 @@
+/*
+ * Annotation colors follow chess.com: orange arrows and red square marks by
+ * default, with green, blue and red alternates picked by modifier keys.
+ */
+.mark,
+.premove {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.mark_main { background: rgba(235, 97, 80, 0.8); }
+.mark_green { background: rgba(172, 206, 89, 0.8); }
+.mark_blue { background: rgba(82, 176, 220, 0.8); }
+.mark_red { background: rgba(214, 48, 49, 0.8); }
+
+/* Premoves get their own deeper red so they never read as a mark. */
+.premove { background: rgba(196, 44, 56, 0.62); }
+
+/* Above pieces and hints, below the dragged piece and the promotion picker. */
+.arrows {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 28;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.arrow_main { fill: rgba(255, 170, 0, 0.8); }
+.arrow_green { fill: rgba(159, 207, 63, 0.82); }
+.arrow_blue { fill: rgba(72, 175, 235, 0.82); }
+.arrow_red { fill: rgba(235, 80, 70, 0.82); }
