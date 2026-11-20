@@ -3,7 +3,7 @@ import { opposite, type Color, type Position, type RatingId } from "@/engine";
 import { cellStyle } from "./layout";
 import { pieceSrc } from "./PieceImage";
 import styles from "./board.module.css";
-import fx from "./effects.module.css";
+import fx from "./pieceFx.module.css";
 
 interface Props {
   pos: Position;
