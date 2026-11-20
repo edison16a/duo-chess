@@ -33,6 +33,6 @@
 .dDark { background: #b4865f; }
 .diagram span::after { content: ""; position: absolute; border-radius: 50%; }
 .m_move::after, .m_both::after { inset: 32%; background: rgba(40, 90, 55, 0.75); }
-.m_both::after { box-shadow: 0 0 0 2px rgba(200, 60, 60, 0.85); }
+
 .m_capture::after { inset: 18%; border: 3px solid rgba(200, 60, 60, 0.85); }
 .m_ray::after { inset: 42%; background: rgba(60, 60, 60, 0.45); }
