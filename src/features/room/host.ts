@@ -57,7 +57,8 @@ export class HostController {
       this.analyzer = new MoveAnalyzer(MODE_BY_ID[next.config.mode].analysis);
       this.analyzerMode = next.config.mode;
     }
-    const deliversMate = after.result?.reason === "checkmate";
+    // Any move that wins on the spot (mate, an exploded king, the hill) counts as legendary.
+    const deliversMate = !!after.result && after.result.winner === entry.color;
     this.analyzer!.rate(before.pos, entry.move, after.pos, deliversMate).then((rating) => {
       if (rating) this.dispatch({ type: "annotate", ply: entry.ply, rating: rating.rating, evalCp: rating.evalCp });
     });
