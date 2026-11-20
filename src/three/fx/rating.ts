@@ -56,7 +56,7 @@ export class RatingFx extends FxBase {
     }
     if (bad) {
       const smoke = this.particles({ capacity: 30, texture: smokeTexture(), blending: THREE.NormalBlending, drag: 1, grow: 2.4, gravity: -0.4 });
-      smoke.emit({ count: id === "blunder" ? 24 : 12, position: v3(0, pieceHeight * 0.6, 0), spread: v3(0.25, 0.3, 0.25), radial: 0.4, life: [1, 1.7], size: [0.4, 0.7], colors: ["#3b2322", "#522a28"] });
+      smoke.emit({ count: id === "blunder" ? 10 : 6, position: v3(0, pieceHeight * 0.75, 0), spread: v3(0.3, 0.3, 0.3), radial: 0.5, life: [0.9, 1.4], size: [0.3, 0.55], colors: ["#7a3532", "#8f4a3a"] });
     }
     const count = id === "legendary" ? 110 : id === "brilliant" ? 80 : bad ? 40 : 30;
     this.motes.emit({ count, position: v3(0, pieceHeight * (bad ? 0.9 : 0.3), 0), spread: v3(0.3, pieceHeight * 0.3, 0.3), radial: bad ? 0.6 : 1.1, velocity: v3(0, bad ? 0 : 1.2, 0), life: [0.7, 1.5], size: [0.08, 0.18], colors: [this.color, "#ffffff"] });
