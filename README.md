@@ -45,7 +45,7 @@ Duo Chess is a quick, no account chess site for exactly two people. One person p
 
 No opponent around? **Play vs bot** works in every mode, with a strength slider from 400 to 3000 Elo.
 
-Every game can be played on a flat 2D board or a full 3D board, picked under **Board** before the game starts. On the 3D board, drag empty space to orbit the camera, scroll to zoom and double click to reset the view. Both boards play the same real time 3D effects: atomic fireballs, lightning, pieces sealed in ice with icicles hanging off them, shield domes, portals and more.
+Every game can be played on a flat 2D board or a full 3D board, The host's **Board** setting picks where everyone starts, and each player can flip the **2D / 3D** switch in the game panel for themselves. On the 3D board, drag empty space to orbit the camera, scroll to zoom and double click to reset the view. Both boards play the same real time 3D effects: atomic fireballs, lightning, pieces sealed in ice with icicles hanging off them, shield domes, portals and more.
 
 ### Game modes
 
@@ -64,6 +64,8 @@ Every game can be played on a flat 2D board or a full 3D board, picked under **B
 | Fog of War | You only see what your pieces can reach. |
 | Duck | After every move you place a duck that blocks a square. |
 | Custom Map | Eleven premade boards or your own from the map editor. |
+
+Any mode can also be played on a map: pick one under **Map** in the lobby (atomic on a 10x8 Capablanca board works fine). The mode's rules apply on top of the map, and ratings and the bot switch from Stockfish to the built in search, since Stockfish only knows plain chess.
 
 ### Mods
 
