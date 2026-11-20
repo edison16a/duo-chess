@@ -3,7 +3,8 @@
 import { opposite, type Color } from "@/engine";
 import { MODE_BY_ID } from "@/features/modes";
 import type { RoomHandle } from "@/features/room/useRoom";
-import { Board } from "@/components/board/Board";
+import dynamic from "next/dynamic";
+import { Board, type BoardProps } from "@/components/board/Board";
 import { DraftPanel } from "./DraftPanel";
 import { EvalBar } from "./EvalBar";
 import { GameControls } from "./GameControls";
@@ -13,10 +14,15 @@ import { PocketBar } from "./PocketBar";
 import { PowerBar } from "./PowerBar";
 import { ResultBanner } from "./ResultBanner";
 import { checkSquaresOf, useGameView } from "./useGameView";
+import { useViewMode } from "./viewMode";
+
+/** three.js only loads for people who switch to the 3D board. */
+const Board3D = dynamic(() => import("@/components/board3d/Board3D"), { ssr: false });
 import styles from "./game.module.css";
 
 export function GameView({ handle }: { handle: RoomHandle }) {
   const v = useGameView(handle);
+  const [view, setView] = useViewMode();
   const { room, game, pos, me } = v;
   const mode = MODE_BY_ID[room.config.mode];
   const mods = room.config.mods;
@@ -58,7 +64,8 @@ export function GameView({ handle }: { handle: RoomHandle }) {
         <div className={styles.boardRow}>
           {mods.evalBar && <EvalBar evalCp={lastEval} orientation={v.orientation} />}
           <div className={styles.boardWrap}>
-            <Board
+            <BoardView
+              mode={view}
               pos={past ? past.pos : pos}
               orientation={v.orientation}
               viewer={me}
@@ -131,6 +138,8 @@ export function GameView({ handle }: { handle: RoomHandle }) {
           theme={v.theme}
           onTheme={v.setTheme}
           onFlip={v.flip}
+          view={view}
+          onView={setView}
           onResign={() => handle.send({ type: "resign" })}
           onDraw={() => handle.send({ type: "draw-offer" })}
           onDrawAnswer={(accept) => handle.send({ type: "draw-answer", accept })}
@@ -138,4 +147,8 @@ export function GameView({ handle }: { handle: RoomHandle }) {
       </aside>
     </div>
   );
+}
+
+function BoardView({ mode, ...props }: BoardProps & { mode: "2d" | "3d" }) {
+  return mode === "3d" ? <Board3D {...props} /> : <Board {...props} />;
 }
