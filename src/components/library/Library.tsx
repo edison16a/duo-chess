@@ -5,9 +5,8 @@ import { CUSTOM_PIECE_DEFS, PIECES, STANDARD_PIECES } from "@/engine";
 import { MODES } from "@/features/modes";
 import { ALL_POWERS, RARITIES, RARITY_LABEL, type Rarity } from "@/features/powers";
 import { PowerCard } from "@/components/game/PowerCard";
-import { MODE_ICONS } from "@/components/lobby/modeIcons";
+import { ModeCard } from "@/components/lobby/ModeCard";
 import { Segmented } from "@/components/ui/Controls";
-import { GlyphIcon } from "@/components/ui/icons";
 import { TopBar } from "@/components/ui/TopBar";
 import { PieceCard } from "./PieceCard";
 import styles from "./library.module.css";
@@ -32,14 +31,8 @@ export function Library() {
         </div>
 
         {tab === "modes" && (
-          <div className={styles.grid}>
-            {MODES.map((m) => (
-              <article key={m.id} className={styles.modeCard}>
-                <span className={styles.modeIcon}><GlyphIcon size={24}>{MODE_ICONS[m.id]}</GlyphIcon></span>
-                <h3>{m.name}</h3>
-                {m.howTo.map((line) => <p key={line}>{line}</p>)}
-              </article>
-            ))}
+          <div className={styles.modeGrid}>
+            {MODES.map((m) => <ModeCard key={m.id} mode={m} detailed />)}
           </div>
         )}
 

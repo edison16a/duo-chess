@@ -6,9 +6,10 @@
 .filter > div { width: min(100%, 640px); }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
-.powerGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.powerGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+.modeGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
 
-.modeCard, .pieceCard {
+.pieceCard {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -17,9 +18,8 @@
   background: var(--surface);
   border: 1px solid var(--border);
 }
-.modeCard h3, .pieceCard h3 { margin: 0; font-size: 17px; }
-.modeCard p, .pieceCard p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
-.modeIcon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: var(--surface-2); }
+.pieceCard h3 { margin: 0; font-size: 17px; }
+.pieceCard p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
 
 .pieceHead { display: flex; align-items: center; gap: 12px; }
 .pieceImgs { display: flex; }
