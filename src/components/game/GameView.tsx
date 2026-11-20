@@ -15,6 +15,7 @@ import { PocketBar } from "./PocketBar";
 import { PowerBar } from "./PowerBar";
 import { ResultBanner } from "./ResultBanner";
 import { checkSquaresOf, useGameView } from "./useGameView";
+import { useResultReveal } from "./useResultReveal";
 
 /** three.js only loads for people who switch to the 3D board. */
 const Board3D = dynamic(() => import("@/components/board3d/Board3D"), { ssr: false });
@@ -34,6 +35,7 @@ export function GameView({ handle }: { handle: RoomHandle }) {
   const lastEval = [...game.history].reverse().find((h) => h.evalCp !== undefined)?.evalCp ?? null;
   // Looking at an earlier position makes the board read only.
   const past = v.history.past;
+  const revealed = useResultReveal(game.result, game.events, fxLevel(mods));
 
   if (room.phase === "draft" && room.draft) {
     return (
@@ -84,13 +86,14 @@ export function GameView({ handle }: { handle: RoomHandle }) {
               rating={past ? null : v.rating}
               premove={past ? null : v.premove}
               fx={fxLevel(mods)}
+              finale={!!game.result && !past}
             />
             {past && (
               <button type="button" className={`${styles.livePill} ${v.history.behind ? styles.liveBehind : ""}`} onClick={v.history.live} data-testid="back-to-live">
                 Back to live
               </button>
             )}
-            {game.result && !past && (
+            {game.result && revealed && !past && (
               <ResultBanner
                 result={game.result}
                 me={me}
