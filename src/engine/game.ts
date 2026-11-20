@@ -47,9 +47,21 @@ export interface GameState {
 }
 
 export interface PowerState {
+  /**
+   * Each player's powers. In the drafted styles a used power leaves the
+   * list. In Random style the list is a fixed row of slots and a spent
+   * power stays in its slot until the slot refills.
+   */
   inventory: Record<Color, string[]>;
   /** Turn key of the last activation, so only one power fires per turn. */
   usedTurn: string | null;
+  /**
+   * Random style only, one entry per slot. Null means the slot is ready.
+   * A number means the slot is cooling down and refills once its owner has
+   * finished that many turns in total. Storing the target instead of a
+   * counter keeps it plain JSON and means nothing has to tick it.
+   */
+  refillAt?: Record<Color, (number | null)[]>;
 }
 
 export function turnKey(pos: Position): string {
