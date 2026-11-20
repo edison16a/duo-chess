@@ -1,6 +1,7 @@
 "use client";
 
 import { opposite, type Color } from "@/engine";
+import { fxLevel, ratingsShow } from "@/features/fx";
 import { MODE_BY_ID } from "@/features/modes";
 import type { RoomHandle } from "@/features/room/useRoom";
 import dynamic from "next/dynamic";
@@ -82,6 +83,7 @@ export function GameView({ handle }: { handle: RoomHandle }) {
               dropKind={past ? null : v.dropKind}
               rating={past ? null : v.rating}
               premove={past ? null : v.premove}
+              fx={fxLevel(mods)}
             />
             {past && (
               <button type="button" className={`${styles.livePill} ${v.history.behind ? styles.liveBehind : ""}`} onClick={v.history.live} data-testid="back-to-live">
@@ -125,7 +127,7 @@ export function GameView({ handle }: { handle: RoomHandle }) {
         )}
         <MoveList
           history={game.history}
-          showRatings={mods.ratings}
+          showRatings={ratingsShow(mods) !== "off"}
           hideFor={mode.fog && v.playing ? me : null}
           current={v.history.current}
           canOpen={v.history.canOpen}

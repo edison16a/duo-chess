@@ -1,4 +1,5 @@
 import { CLOCK_PRESETS, MODE_BY_ID, MOVE_TIMER_PRESETS, type GameConfig, type Mods } from "@/features/modes";
+import { fxLevel, ratingsShow } from "@/features/fx";
 import { DRAFT_STYLES } from "@/features/powers/draft";
 import { Segmented, Toggle } from "@/components/ui/Controls";
 import { Icon, type IconName } from "@/components/ui/icons";
@@ -77,11 +78,25 @@ export function ModsPanel({ config, disabled, onChange }: Props) {
           </Row>
         </>
       )}
+      <Row icon="sparkle" label="Ratings">
+        <Segmented
+          options={[{ label: "Off", value: "off" as const }, { label: "Move list", value: "list" as const }, { label: "Board", value: "board" as const }]}
+          value={ratingsShow(mods)}
+          onChange={(ratings) => set({ ratings })}
+          disabled={disabled}
+          testId="ratings-show"
+        />
+      </Row>
+      <Row icon="cube" label="Effects">
+        <Segmented
+          options={[{ label: "Full", value: "full" as const }, { label: "Low", value: "low" as const }]}
+          value={fxLevel(mods)}
+          onChange={(fx) => set({ fx })}
+          disabled={disabled}
+          testId="fx-level"
+        />
+      </Row>
       <div className={styles.toggles}>
-        <label className={styles.toggleRow}>
-          <span><Icon name="sparkle" size={16} />Show ratings</span>
-          <Toggle label="Show ratings" checked={mods.ratings} onChange={(ratings) => set({ ratings })} disabled={disabled} />
-        </label>
         <label className={styles.toggleRow}>
           <span><Icon name="chart" size={16} />Eval bar</span>
           <Toggle label="Eval bar" checked={mods.evalBar} onChange={(evalBar) => set({ evalBar })} disabled={disabled} />

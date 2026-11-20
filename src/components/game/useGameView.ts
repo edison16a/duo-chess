@@ -7,6 +7,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ratingsShow } from "@/features/fx";
 import {
   PIECES, inCheck, legalMoves, opposite, playMove, positionKey, royalSquares,
   type Color, type GameState, type Move, type PieceKind, type Position,
@@ -95,7 +96,8 @@ export function useGameView(handle: RoomHandle) {
   const checkSquares = checkSquaresOf(pos);
 
   const last = game.history[game.history.length - 1];
-  const rating = room.config.mods.ratings && last?.rating && !last.power
+  // The badge, burst and sound only play when ratings show on the board, not just in the move list.
+  const rating = ratingsShow(room.config.mods) === "board" && last?.rating && !last.power
     ? { square: last.move.to, id: last.rating, key: `${last.ply}` }
     : null;
 
