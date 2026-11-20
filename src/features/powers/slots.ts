@@ -100,3 +100,14 @@ export function refillSlots(game: GameState, random: () => number): GameState {
   }
   return next === powers ? game : { ...game, powers: next };
 }
+
+export interface SlotView {
+  id: string;
+  /** Turns until it is back, 0 when ready. */
+  left: number;
+}
+
+/** A hand as the power bar draws it. Outside Random style every card is ready. */
+export function handView(game: GameState, color: Color): SlotView[] {
+  return (game.powers?.inventory[color] ?? []).map((id, i) => ({ id, left: turnsLeft(game, color, i) }));
+}
