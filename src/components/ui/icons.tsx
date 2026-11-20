@@ -32,6 +32,7 @@ const PATHS: Record<string, ReactElement> = {
   link: <><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" /><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" /></>,
   info: <><circle cx="12" cy="12" r="9" /><path d="M12 11v5" /><path d="M12 8h.01" /></>,
   arrowLeft: <path d="M15 5l-7 7 7 7" />,
+  bot: <><rect x="4.5" y="8" width="15" height="11.5" rx="3" /><path d="M12 8V4.5" /><circle cx="12" cy="3.6" r="1" /><path d="M9.2 13.2v1.2M14.8 13.2v1.2" /><path d="M2.5 12.5v3M21.5 12.5v3" /></>,
   swap: <><path d="M7 4L3 8l4 4" /><path d="M3 8h14" /><path d="M17 20l4-4-4-4" /><path d="M21 16H7" /></>,
 };
 

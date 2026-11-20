@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { MODE_BY_ID } from "@/features/modes";
 import { mapProblem } from "@/features/maps";
 import { resolveMap } from "@/features/modes";
@@ -13,7 +13,8 @@ import { ModsPanel } from "./ModsPanel";
 import { PlayersCard } from "./PlayersCard";
 import styles from "./lobby.module.css";
 
-export function Lobby({ handle }: { handle: RoomHandle }) {
+/** `side` replaces the room code card, e.g. with bot settings in a local game. */
+export function Lobby({ handle, side }: { handle: RoomHandle; side?: ReactNode }) {
   const room = handle.room!;
   const [copied, setCopied] = useState<"code" | "link" | null>(null);
   const isHost = room.hostId === handle.myId;
@@ -35,14 +36,16 @@ export function Lobby({ handle }: { handle: RoomHandle }) {
   return (
     <div className={styles.lobby}>
       <aside className={styles.side}>
-        <div className={styles.codeCard}>
-          <span className={styles.label}>Room code</span>
-          <span className={styles.bigCode} data-testid="room-code">{room.code}</span>
-          <div className={styles.codeActions}>
-            <Button size="sm" icon={copied === "code" ? "check" : "copy"} onClick={() => copy("code")}>Code</Button>
-            <Button size="sm" icon={copied === "link" ? "check" : "link"} onClick={() => copy("link")}>Invite link</Button>
+        {side ?? (
+          <div className={styles.codeCard}>
+            <span className={styles.label}>Room code</span>
+            <span className={styles.bigCode} data-testid="room-code">{room.code}</span>
+            <div className={styles.codeActions}>
+              <Button size="sm" icon={copied === "code" ? "check" : "copy"} onClick={() => copy("code")}>Code</Button>
+              <Button size="sm" icon={copied === "link" ? "check" : "link"} onClick={() => copy("link")}>Invite link</Button>
+            </div>
           </div>
-        </div>
+        )}
         <PlayersCard room={room} myId={handle.myId} onRename={(name) => handle.send({ type: "rename", name })} />
         <div className={styles.startBox}>
           {isHost ? (
