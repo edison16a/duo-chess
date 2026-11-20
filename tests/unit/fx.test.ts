@@ -6,7 +6,7 @@ describe("low detail effects", () => {
   it("turns blast squares red once each", () => {
     const flashes = eventFlashes([
       { type: "explosion", square: 27, squares: [27, 28, 36] },
-      { type: "destroy", square: 28, kind: "n", color: "b" },
+      { type: "destroy", square: 28, kind: "knight", color: "b" },
       { type: "move", from: 12, to: 28, pieceId: 4 },
     ]);
     expect(flashes.map((f) => f.square)).toEqual([27, 28, 36]);
