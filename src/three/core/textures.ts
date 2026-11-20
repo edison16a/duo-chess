@@ -183,3 +183,48 @@ export function flameTexture(): THREE.Texture {
     ctx.putImageData(img, 0, 0);
   });
 }
+
+/** Thick fractures radiating from the centre. `glow` draws the molten seams instead of the dark cracks. */
+export function crackTexture(glow = false): THREE.Texture {
+  return canvasTexture(glow ? "cracks-glow" : "cracks", 512, (ctx, s) => {
+    let seed = 5;
+    const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    const lines: [number, number][][] = [];
+    const branch = (x: number, y: number, angle: number, len: number, depth: number) => {
+      const pts: [number, number][] = [[x, y]];
+      let cx = x, cy = y;
+      for (let i = 0; i < 5; i++) {
+        angle += (rand() - 0.5) * 0.55;
+        cx += Math.cos(angle) * (len / 5);
+        cy += Math.sin(angle) * (len / 5);
+        pts.push([cx, cy]);
+        if (depth < 2 && rand() < 0.3) branch(cx, cy, angle + (rand() < 0.5 ? 0.8 : -0.8), len * 0.5, depth + 1);
+      }
+      lines.push(pts);
+    };
+    for (let i = 0; i < 8; i++) branch(s / 2, s / 2, (i / 8) * Math.PI * 2 + rand() * 0.5, s * (0.28 + rand() * 0.16), 0);
+    const stroke = (width: number, color: string) => {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      for (const pts of lines) {
+        ctx.beginPath();
+        pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+        ctx.stroke();
+      }
+    };
+    if (glow) {
+      stroke(16, "rgba(255, 120, 30, 0.35)");
+      stroke(6, "rgba(255, 190, 90, 0.95)");
+    } else {
+      stroke(11, "rgba(25, 14, 8, 0.85)");
+      stroke(5, "rgba(8, 4, 2, 1)");
+    }
+    const g = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s * 0.14);
+    g.addColorStop(0, glow ? "rgba(255, 150, 50, 0.9)" : "rgba(15, 8, 4, 0.95)");
+    g.addColorStop(1, "rgba(15, 8, 4, 0)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, s, s);
+  });
+}
