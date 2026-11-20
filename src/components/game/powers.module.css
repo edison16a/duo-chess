@@ -93,3 +93,6 @@
   .lg .blurb { font-size: 12.5px; }
   .hands { grid-template-columns: 1fr; }
 }
+
+/* Local copy: CSS modules scope keyframe names, so the global one is not visible here. */
+@keyframes chroma { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(360deg); } }
