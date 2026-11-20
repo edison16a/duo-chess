@@ -5,7 +5,8 @@ const { chromium } = require("playwright");
 const BASE = process.env.BASE_URL || "http://localhost:3100";
 
 async function launch() {
-  const browser = await chromium.launch();
+  // SwiftShader gives headless Chromium WebGL for the 3D board.
+  const browser = await chromium.launch({ args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
   const make = async () => {
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: Number(process.env.DSF || 1) });
     const page = await context.newPage();
