@@ -45,7 +45,7 @@ const STRIKES: { make: Strike; kills: boolean }[] = [
 export const battlefield: SceneDef = {
   duration: 30,
   bloom: 0.6,
-  poster: 6,
+  poster: 5,
   async setup(stage) {
     addBoard(stage, SHAPE);
     stage.scene.fog = new THREE.Fog(0x0d0f13, 10, 30);
@@ -61,10 +61,11 @@ export const battlefield: SceneDef = {
     };
     for (let x = 0; x < SHAPE.width; x++) {
       const kind = x < 4 || x >= 12 ? FAIRY[x % FAIRY.length] : BACK[x - 4];
-      await place(kind, "w", x, 0);
-      await place("pawn", "w", x, 1);
-      await place("pawn", "b", x, SHAPE.height - 2);
-      await place(kind, "b", x, SHAPE.height - 1);
+      // Armies already in contact: back ranks pushed up, pawns meeting near the middle.
+      await place(kind, "w", x, 1);
+      await place("pawn", "w", x, x % 3 === 0 ? 4 : 3);
+      await place("pawn", "b", x, x % 3 === 1 ? 5 : 6);
+      await place(kind, "b", x, SHAPE.height - 2);
     }
 
     const effects: Effect[] = [];
@@ -80,17 +81,18 @@ export const battlefield: SceneDef = {
         last = t;
         // Low, slow crane shot along the front line.
         const a = t * 0.045;
-        stage.camera.position.set(Math.sin(a) * 11, 4.6 + Math.sin(t * 0.13) * 0.6, Math.cos(a) * 9.5);
-        stage.camera.lookAt(Math.sin(a * 0.7) * 1.5, 0, 0);
+        stage.camera.position.set(Math.sin(a) * 12.5, 7.2 + Math.sin(t * 0.13) * 0.6, Math.cos(a) * 11.5);
+        stage.camera.lookAt(Math.sin(a * 0.7) * 1.5, -0.6, 0);
 
         if (t >= nextMove) {
-          nextMove = t + 0.35 + Math.random() * 0.4;
+          nextMove = t + 0.18 + Math.random() * 0.25;
           const u = randomUnit();
           const x = u.square % SHAPE.width, y = Math.floor(u.square / SHAPE.width);
-          const dir = u.obj.position.z > 0 ? -1 : 1;
-          const ny = y - dir;
+          // Each side pushes toward the enemy, then drifts back once it reaches the far side.
+          const white = units.indexOf(u) % 4 < 2;
+          const ny = y + (white ? 1 : -1) * (Math.random() < 0.8 ? 1 : -1);
           const target = ny * SHAPE.width + x + (Math.random() < 0.3 ? (Math.random() < 0.5 ? -1 : 1) : 0);
-          if (ny > 0 && ny < SHAPE.height - 1 && !occupied.has(target) && target % SHAPE.width >= 0) {
+          if (ny >= 0 && ny < SHAPE.height && !occupied.has(target) && Math.abs((target % SHAPE.width) - x) <= 1) {
             occupied.delete(u.square);
             occupied.add(target);
             u.square = target;
@@ -98,7 +100,7 @@ export const battlefield: SceneDef = {
           }
         }
         if (t >= nextStrike) {
-          nextStrike = t + 0.55 + Math.random() * 0.6;
+          nextStrike = t + 0.28 + Math.random() * 0.4;
           const u = randomUnit();
           const strike = STRIKES[Math.floor(Math.random() * STRIKES.length)];
           strike.make(u.obj.position).forEach((e) => play(e, u.obj.position));
