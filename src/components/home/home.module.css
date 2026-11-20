@@ -1,0 +1,63 @@
+.home {
+  position: relative;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 32px 16px;
+}
+.corner { position: absolute; top: 20px; right: 20px; }
+.hero { display: flex; flex-direction: column; align-items: center; gap: 22px; width: 100%; max-width: 440px; }
+.hero h1 { margin: -6px 0 0; font-size: 44px; letter-spacing: -0.035em; font-weight: 720; }
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  height: 36px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  cursor: text;
+}
+.nameRow input { border: 0; outline: none; background: transparent; width: 150px; font-weight: 600; color: var(--text); text-align: center; }
+
+.actions { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+.actions > button { width: 100%; }
+.join { display: flex; gap: 8px; }
+.join input {
+  flex: 1;
+  min-width: 0;
+  height: 52px;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: 0.3em;
+  text-align: center;
+  outline: none;
+}
+.join input:focus { border-color: var(--accent); }
+.join input::placeholder { color: var(--faint); }
+
+.links { display: flex; gap: 6px; }
+.links a {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 560;
+}
+.links a:hover { background: var(--surface); color: var(--text); }
+
+@media (max-width: 520px) {
+  .corner { top: 12px; right: 12px; }
+  .hero h1 { font-size: 36px; }
+}
