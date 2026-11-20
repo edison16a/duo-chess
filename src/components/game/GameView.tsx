@@ -12,7 +12,7 @@ import { PlayerStrip } from "./PlayerStrip";
 import { PocketBar } from "./PocketBar";
 import { PowerBar } from "./PowerBar";
 import { ResultBanner } from "./ResultBanner";
-import { useGameView } from "./useGameView";
+import { checkSquaresOf, useGameView } from "./useGameView";
 import styles from "./game.module.css";
 
 export function GameView({ handle }: { handle: RoomHandle }) {
@@ -25,6 +25,8 @@ export function GameView({ handle }: { handle: RoomHandle }) {
   const bottom = v.orientation;
   const top = opposite(bottom);
   const lastEval = [...game.history].reverse().find((h) => h.evalCp !== undefined)?.evalCp ?? null;
+  // Looking at an earlier position makes the board read only.
+  const past = v.history.past;
 
   if (room.phase === "draft" && room.draft) {
     return (
@@ -57,23 +59,29 @@ export function GameView({ handle }: { handle: RoomHandle }) {
           {mods.evalBar && <EvalBar evalCp={lastEval} orientation={v.orientation} />}
           <div className={styles.boardWrap}>
             <Board
-              pos={pos}
+              pos={past ? past.pos : pos}
               orientation={v.orientation}
               viewer={me}
               theme={v.theme}
-              legal={v.legal}
+              legal={past ? [] : v.legal}
               onMove={v.onMove}
-              lastMove={game.lastMove}
-              checkSquares={v.checkSquares}
+              lastMove={past ? past.lastMove : game.lastMove}
+              checkSquares={past ? checkSquaresOf(past.pos) : v.checkSquares}
               events={game.events}
               eventSeq={game.eventSeq}
               fog={!!mode.fog && v.playing}
               blindfold={mods.blindfold && v.playing}
-              targeting={v.targeting}
-              dropKind={v.dropKind}
-              rating={v.rating}
+              targeting={past ? null : v.targeting}
+              dropKind={past ? null : v.dropKind}
+              rating={past ? null : v.rating}
+              premove={past ? null : v.premove}
             />
-            {game.result && (
+            {past && (
+              <button type="button" className={`${styles.livePill} ${v.history.behind ? styles.liveBehind : ""}`} onClick={v.history.live} data-testid="back-to-live">
+                Back to live
+              </button>
+            )}
+            {game.result && !past && (
               <ResultBanner
                 result={game.result}
                 me={me}
@@ -108,7 +116,14 @@ export function GameView({ handle }: { handle: RoomHandle }) {
         {pos.rules.drops && me && (
           <PocketBar pocket={pos.pockets[me]} color={me} selected={v.dropKind} enabled={v.myTurn} onSelect={v.setDropKind} />
         )}
-        <MoveList history={game.history} showRatings={mods.ratings} hideFor={mode.fog && v.playing ? me : null} />
+        <MoveList
+          history={game.history}
+          showRatings={mods.ratings}
+          hideFor={mode.fog && v.playing ? me : null}
+          current={v.history.current}
+          canOpen={v.history.canOpen}
+          onOpen={v.history.open}
+        />
         <GameControls
           playing={v.playing}
           seated={me !== null}

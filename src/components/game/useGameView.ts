@@ -9,13 +9,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   PIECES, inCheck, legalMoves, opposite, playMove, positionKey, royalSquares,
-  type Color, type GameState, type Move, type PieceKind,
+  type Color, type GameState, type Move, type PieceKind, type Position,
 } from "@/engine";
 import { sfx } from "@/features/audio/sounds";
 import { POWERS, RARITY_COLOR, canUsePowerNow } from "@/features/powers";
 import { colorOf } from "@/features/room/reducer";
 import type { RoomHandle } from "@/features/room/useRoom";
 import { loadTheme, saveTheme, BOARD_THEMES, type BoardTheme } from "@/components/board/themes";
+import { usePremove } from "@/components/board/usePremove";
+import { useHistoryView } from "./useHistoryView";
+
+/** Squares to paint red because their royal piece stands in check. */
+export function checkSquaresOf(pos: Position): number[] {
+  return pos.rules.checkRules && inCheck(pos, pos.turn) ? royalSquares(pos, pos.turn) : [];
+}
 
 export function useGameView(handle: RoomHandle) {
   const room = handle.room!;
@@ -50,6 +57,11 @@ export function useGameView(handle: RoomHandle) {
     handle.send({ type: "move", move });
   }, [serverGame, handle]);
 
+  const premove = usePremove({ pos, me, playing, myTurn, onMove });
+  // Snapshots come from the host's state only, so a rejected optimistic
+  // move never lands in the cache.
+  const history = useHistoryView(serverGame);
+
   const firePower = useCallback((power: string, squares: number[]) => {
     setAiming(null);
     handle.send({ type: "power", power, squares });
@@ -80,7 +92,7 @@ export function useGameView(handle: RoomHandle) {
     };
   }, [aiming, me, pos, game.lost, firePower]);
 
-  const checkSquares = pos.rules.checkRules && inCheck(pos, pos.turn) ? royalSquares(pos, pos.turn) : [];
+  const checkSquares = checkSquaresOf(pos);
 
   const last = game.history[game.history.length - 1];
   const rating = room.config.mods.ratings && last?.rating && !last.power
@@ -108,7 +120,7 @@ export function useGameView(handle: RoomHandle) {
   const notice = room.notice && room.notice.to === handle.myId ? room.notice : null;
 
   return {
-    room, game, pos, me, playing, myTurn, legal, onMove, theme,
+    room, game, pos, me, playing, myTurn, legal, onMove, premove, history, theme,
     setTheme: (id: string) => { const t = BOARD_THEMES.find((b) => b.id === id)!; saveTheme(id); setTheme(t); },
     orientation: ((me ?? "w") === "w") !== flipped ? ("w" as Color) : ("b" as Color),
     flip: () => setFlipped((f) => !f),

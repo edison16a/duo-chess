@@ -32,15 +32,29 @@ function Entry({ entry, showRatings, hidden }: { entry: HistoryEntry; showRating
   );
 }
 
+interface Props {
+  history: HistoryEntry[];
+  showRatings: boolean;
+  hideFor?: Color | null;
+  /** History length on the board right now, used to mark the shown move. */
+  current: number;
+  canOpen: (length: number) => boolean;
+  onOpen: (length: number) => void;
+}
+
 /**
  * Moves grouped by turn. Multi move turns and powers simply stack inside the
- * same row. `hideFor` masks the opponent's moves in Fog of War.
+ * same row. `hideFor` masks the opponent's moves in Fog of War. Clicking an
+ * entry shows the board right after it, when we hold a snapshot for it.
  */
-export function MoveList({ history, showRatings, hideFor = null }: { history: HistoryEntry[]; showRatings: boolean; hideFor?: Color | null }) {
+export function MoveList({ history, showRatings, hideFor = null, current, canOpen, onOpen }: Props) {
+  const list = useRef<HTMLDivElement>(null);
   const end = useRef<HTMLDivElement>(null);
+  const live = current === history.length;
   useEffect(() => {
-    end.current?.scrollIntoView({ block: "nearest" });
-  }, [history.length]);
+    if (live) end.current?.scrollIntoView({ block: "nearest" });
+    else list.current?.querySelector("[data-current]")?.scrollIntoView({ block: "nearest" });
+  }, [history.length, current, live]);
 
   const rows: { n: number; w: HistoryEntry[]; b: HistoryEntry[] }[] = [];
   for (const entry of history) {
@@ -52,13 +66,33 @@ export function MoveList({ history, showRatings, hideFor = null }: { history: Hi
     row[entry.color].push(entry);
   }
 
+  const cell = (entries: HistoryEntry[]) => entries.map((e) => {
+    const hidden = !!hideFor && e.color !== hideFor;
+    const shown = e.ply + 1 === current;
+    return (
+      <button
+        key={e.ply}
+        type="button"
+        className={`${styles.moveBtn} ${shown ? styles.moveCurrent : ""}`}
+        disabled={hidden || !canOpen(e.ply + 1)}
+        // Mouse clicks should not leave a focus ring behind; arrow keys move the view anyway.
+        onMouseDown={(ev) => ev.preventDefault()}
+        onClick={() => onOpen(e.ply + 1)}
+        data-current={shown || undefined}
+        data-ply={e.ply}
+      >
+        <Entry entry={e} showRatings={showRatings} hidden={hidden} />
+      </button>
+    );
+  });
+
   return (
-    <div className={`${styles.moves} scroll-thin`} data-testid="move-list">
+    <div ref={list} className={`${styles.moves} scroll-thin`} data-testid="move-list">
       {rows.map((row) => (
         <div key={row.n} className={styles.moveRow}>
           <span className={styles.moveNo}>{row.n}</span>
-          <span className={styles.moveCell}>{row.w.map((e) => <Entry key={e.ply} entry={e} showRatings={showRatings} hidden={!!hideFor && e.color !== hideFor} />)}</span>
-          <span className={styles.moveCell}>{row.b.map((e) => <Entry key={e.ply} entry={e} showRatings={showRatings} hidden={!!hideFor && e.color !== hideFor} />)}</span>
+          <span className={styles.moveCell}>{cell(row.w)}</span>
+          <span className={styles.moveCell}>{cell(row.b)}</span>
         </div>
       ))}
       <div ref={end} />
