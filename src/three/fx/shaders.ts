@@ -56,7 +56,7 @@ export function beamMaterial(color: THREE.ColorRepresentation): THREE.ShaderMate
         float core = pow(abs(dot(vNormal, vView)), 1.6);
         float fade = smoothstep(1.0, 0.25, vUv.y) * smoothstep(0.0, 0.05, vUv.y);
         float flicker = 0.75 + 0.25 * sin(vUv.y * 40.0 - uTime * 18.0);
-        gl_FragColor = vec4(uColor * 1.8, core * fade * flicker * uAlpha);
+        gl_FragColor = vec4(uColor * 1.3, core * fade * flicker * uAlpha * 0.8);
       }`,
     transparent: true,
     depthWrite: false,
