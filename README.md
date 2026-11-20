@@ -37,11 +37,11 @@
 
 ## What it is
 
-Duo Chess is a quick, no account chess site for exactly two people. One person presses **Host game**, gets a six letter code, and the other person types it in. The host picks a mode and some mods, presses start, and you play. There are no ratings, no profiles and nothing stored long term. A room lives on the broker while you play and disappears afterwards.
+Duo Chess is a quick, no account chess site for exactly two people. One person presses **Host game**, gets a four digit code, and the other person types it in. Both players can pick the mode and mods, the host presses start, and you play. There are no ratings, no profiles and nothing stored long term. A room lives on the broker while you play and disappears afterwards.
 
 No opponent around? **Play vs bot** works in every mode, with a strength slider from 400 to 3000 Elo.
 
-Every game can be played on a flat 2D board or a full 3D board. Flip the **2D / 3D** switch in the game panel, drag empty space to orbit the camera, scroll to zoom and double click to reset the view. Both boards play the same real time 3D effects: atomic fireballs, lightning, pieces sealed in ice with icicles hanging off them, shield domes, portals and more.
+Every game can be played on a flat 2D board or a full 3D board, picked under **Board** before the game starts. On the 3D board, drag empty space to orbit the camera, scroll to zoom and double click to reset the view. Both boards play the same real time 3D effects: atomic fireballs, lightning, pieces sealed in ice with icicles hanging off them, shield domes, portals and more.
 
 ### Game modes
 
@@ -63,7 +63,7 @@ Every game can be played on a flat 2D board or a full 3D board. Flip the **2D / 
 
 ### Mods
 
-Mods stack on top of any mode: a chess clock (bullet to classical, or none), a per move timer, **Show ratings**, an eval bar, blindfold, and which color the host plays.
+Mods stack on top of any mode: a chess clock (unlimited by default, or bullet to classical), a per move timer with a visible countdown, the 2D or 3D board, where ratings show (off, move list only, or on the board too), effect detail, an eval bar, blindfold, and which color the host plays. **Effects: Low** swaps every 3D effect for plain square flashes (an atomic blast just turns its squares red) and keeps only the rating badge, for slower machines or calmer games.
 
 ### Board controls
 
@@ -71,11 +71,11 @@ The board behaves like the big chess sites. Click or drag to move. Right click a
 
 ### Move ratings
 
-With **Show ratings** on, every move gets judged live: Legendary, Brilliant, Great, Best, Excellent, Good, Inaccuracy, Mistake or Blunder. The piece that moved lights up in the rating color. Brilliant, Great and Legendary moves shine, pop and wobble, a Legendary move also throws golden rays, and mistakes and blunders glow red and shake. Each rating has its own sound.
+With ratings on, every move gets judged live: Legendary, Brilliant, Great, Best, Excellent, Good, Inaccuracy, Mistake or Blunder. The piece that moved lights up in the rating color. Brilliant, Great and Legendary moves shine, pop and wobble, a Legendary move also throws golden rays, and mistakes and blunders glow red and shake. Each rating has its own sound.
 
 ### Superpowers
 
-There are 50 powers across five rarities: 15 rare, 12 epic, 10 legendary, 8 mythical and 5 chromatic (which cycle through the rainbow). Before the game you draft in turns. Each pick shows three rolled powers: keep one, give one to your opponent, and the last one gets crossed out. In game you can fire one power per turn. Some are free (Frostbite, Aegis, Double Down), others use up your move (Meteor, Teleport, Black Hole). Every power has its own line icon, board effect and sound. Its card shows a cinematic render of the power in a world that fits it (Frostbite freezes a knight in an ice cave, Meteor lands in a volcano), and resting on a card for three seconds plays it live in 3D with how to use it.
+There are 50 powers across five rarities: 15 rare, 12 epic, 10 legendary, 8 mythical and 5 chromatic (which cycle through the rainbow). Before the game both players draft at the same time, in one of three styles. **Take & give**: you see two powers, take one, and your opponent gets the other. **Triple draft**: you see three and keep one. **Free deck**: you build your own hand from all 50, where rarer powers cost more points from a fixed budget. In game you can fire one power per turn. Some are free (Frostbite, Aegis, Double Down), others use up your move (Meteor, Teleport, Black Hole). Every power has its own line icon, board effect and sound. Its card shows a cinematic render of the power in a world that fits it (Frostbite freezes a knight in an ice cave, Meteor lands in a volcano), and resting on a card for half a second opens a small popup beside it that plays the power live in 3D with how to use it.
 
 ### Fairy pieces and maps
 
