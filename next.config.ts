@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  devIndicators: false,
   // The Stockfish worker fetches its wasm from /engine, so make sure it is
   // served with a long cache and the right MIME type on every host.
   async headers() {
