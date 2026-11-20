@@ -4,12 +4,14 @@ import { FX_LAB, fxLab } from "./fxLab";
 import { MODE_SCENES } from "./modes";
 import { battlefield } from "./battlefield";
 import { POWER_SCENE_IDS, powerScene } from "./powers";
+import { ENV_PREVIEW_IDS, envPreview } from "./envPreview";
 
 /** Every scene the render route can show, by name ("mode:atomic", "power:frostbite", ...). */
 export const SCENES: Record<string, () => Promise<SceneDef>> = {
   ...Object.fromEntries(Object.entries(MODE_SCENES).map(([k, make]) => [`mode:${k}`, async () => make()])),
   ...Object.fromEntries(POWER_SCENE_IDS.map((id) => [`power:${id}`, async () => powerScene(id)])),
   ...Object.fromEntries(Object.keys(FX_LAB).map((k) => [`fx:${k}`, async () => fxLab(k)])),
+  ...Object.fromEntries(ENV_PREVIEW_IDS.map((id) => [`env:${id}`, async () => envPreview(id)])),
   showcase: async () => showcase,
   battlefield: async () => battlefield,
   ...Object.fromEntries([
