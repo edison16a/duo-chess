@@ -162,3 +162,24 @@ export function badgeTexture(glyph: string, color: string): THREE.Texture {
     ctx.fillText(glyph, s / 2, s / 2 + 3);
   });
 }
+
+/** Teardrop flame tongue: wide soft bottom tapering to a point at the top. */
+export function flameTexture(): THREE.Texture {
+  return canvasTexture("flame", 128, (ctx, s) => {
+    const img = ctx.createImageData(s, s);
+    for (let y = 0; y < s; y++) {
+      for (let x = 0; x < s; x++) {
+        const u = (x / s - 0.5) * 2;
+        const v = 1 - y / s;
+        // Width shrinks toward the top, so the shape points upward.
+        const width = 0.55 * Math.pow(1 - v, 0.7) + 0.02;
+        const d = Math.abs(u) / width;
+        const body = Math.max(0, 1 - d * d) * Math.min(1, v * 6) * Math.min(1, (1 - v) * 1.6);
+        const i = (y * s + x) * 4;
+        img.data[i] = img.data[i + 1] = img.data[i + 2] = 255;
+        img.data[i + 3] = Math.round(255 * Math.pow(body, 1.4));
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+  });
+}
