@@ -33,12 +33,13 @@ function groundTexture(): THREE.Texture {
   return t;
 }
 
-export function grassland(stage: Stage, opts: { blades?: number; clear?: [number, number, number, number] } = {}): Environment {
+export function grassland(stage: Stage, opts: { blades?: number; clear?: [number, number, number, number]; sun?: [number, number] } = {}): Environment {
   const { scene, key } = stage;
   const sky = new Sky();
   sky.scale.setScalar(4000);
   // Low warm sun off to the side, out of frame, so it rakes across the field without glare.
-  const sun = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(86), Math.PI - 1.35);
+  const [elevation, azimuth] = opts.sun ?? [86, Math.PI - 1.35];
+  const sun = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(elevation), azimuth);
   const u = sky.material.uniforms;
   u.turbidity.value = 9;
   u.rayleigh.value = 3.2;
