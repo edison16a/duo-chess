@@ -75,8 +75,8 @@ export class FxOverlay {
     effect.object.scale.setScalar(SCALE);
   }
 
-  playEvents(events: GameEvent[]): void {
-    for (const p of eventEffects(events)) {
+  playEvents(events: GameEvent[], finale = false): void {
+    for (const p of eventEffects(events, finale)) {
       this.place(p.effect, p.square);
       this.scene.add(p.effect.object);
       this.oneShots.push(p.effect);

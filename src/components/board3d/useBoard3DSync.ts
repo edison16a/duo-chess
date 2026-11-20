@@ -73,7 +73,7 @@ export function useBoard3DSync(scene: RefObject<BoardScene | null>, ready: boole
   useEffect(() => {
     if (!ready || !props.events.length) return;
     scene.current!.lite = props.fx === "low";
-    scene.current!.playEvents(props.events);
+    scene.current!.playEvents(props.events, !!props.finale);
     playEventSounds(props.events);
     // Only a new event sequence should replay effects.
   }, [ready, scene, props.eventSeq]); // eslint-disable-line react-hooks/exhaustive-deps

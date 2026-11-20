@@ -17,9 +17,11 @@ interface Props {
   events: GameEvent[];
   seq: number;
   rating: { square: number; id: RatingId; key: string } | null;
+  /** These events ended the game. */
+  finale?: boolean;
 }
 
-export function FxCanvas({ pos, orientation, viewer, events, seq, rating }: Props) {
+export function FxCanvas({ pos, orientation, viewer, events, seq, rating, finale = false }: Props) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const overlay = useRef<FxOverlay | null>(null);
   const seen = useRef(seq);
@@ -56,8 +58,8 @@ export function FxCanvas({ pos, orientation, viewer, events, seq, rating }: Prop
   useEffect(() => {
     if (seq === seen.current) return;
     seen.current = seq;
-    overlay.current?.playEvents(events);
-  }, [seq, events]);
+    overlay.current?.playEvents(events, finale);
+  }, [seq, events]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!rating || rating.key === rated.current) return;

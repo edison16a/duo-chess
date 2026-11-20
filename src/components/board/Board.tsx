@@ -40,6 +40,8 @@ export interface BoardProps {
   premove?: PremoveControl | null;
   /** Low swaps the 3D effects for square flashes and drops the shake. */
   fx?: FxLevel;
+  /** True when the latest events ended the game, so they play bigger. */
+  finale?: boolean;
 }
 
 const noShake = () => {};
@@ -111,7 +113,7 @@ export function Board(props: BoardProps) {
       <Effects events={props.events} seq={props.eventSeq} onShake={lite ? noShake : () => { setShaking(true); setTimeout(() => setShaking(false), 450); }} />
       {ui.promotion && <PromotionPicker moves={ui.promotion.moves} color={pos.turn} onPick={ui.choosePromotion} />}
     </div>
-    {!lite && <FxCanvas pos={pos} orientation={orientation} viewer={viewer} events={props.events} seq={props.eventSeq} rating={props.rating} />}
+    {!lite && <FxCanvas pos={pos} orientation={orientation} viewer={viewer} events={props.events} seq={props.eventSeq} rating={props.rating} finale={props.finale} />}
     </div>
   );
 }

@@ -62,12 +62,19 @@ export function powerEffects(power: string): Effect[] {
   }
 }
 
-/** Effects for the events of one action, in the order they should start. */
-export function eventEffects(events: GameEvent[]): Placed[] {
+/**
+ * Effects for the events of one action, in the order they should start.
+ * `finale` marks the action that ended the game: its blast is the big one,
+ * and every piece caught in it shatters.
+ */
+export function eventEffects(events: GameEvent[], finale = false): Placed[] {
   const out: Placed[] = [];
   for (const e of events) {
     switch (e.type) {
-      case "explosion": out.push({ square: e.square, effect: new Explosion(1.5) }); break;
+      case "explosion":
+        out.push({ square: e.square, effect: new Explosion(finale ? 2.6 : 1.5) });
+        if (finale) for (const s of e.squares) if (s !== e.square) out.push({ square: s, effect: new Shatter() });
+        break;
       case "capture": if (!events.some((x) => x.type === "explosion")) out.push({ square: e.square, effect: new CapturePuff() }); break;
       case "destroy": out.push({ square: e.square, effect: new Shatter() }); break;
       case "warp": out.push({ square: e.to, effect: new WarpSwirl() }, { square: e.from, effect: new WarpSwirl() }); break;

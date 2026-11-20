@@ -97,16 +97,16 @@ export class BoardScene {
     this.arrows.set(this.shape, list);
   }
 
-  playEvents(events: GameEvent[]): void {
+  playEvents(events: GameEvent[], finale = false): void {
     if (this.lite) {
       for (const f of eventFlashes(events)) this.effects.play(new SquareFlash(f.color), squareToWorld(this.shape, f.square));
       return;
     }
-    for (const placed of eventEffects(events)) {
+    for (const placed of eventEffects(events, finale)) {
       const at = placed.square >= 0 ? squareToWorld(this.shape, placed.square) : new THREE.Vector3();
       this.effects.play(placed.effect, at);
     }
-    if (events.some((e) => e.type === "explosion" || e.type === "mine")) this.rig.shake(0.45);
+    if (events.some((e) => e.type === "explosion" || e.type === "mine")) this.rig.shake(finale ? 0.9 : 0.45);
   }
 
   /** Plays the rating burst once and keeps a floating badge above the rated piece. */
