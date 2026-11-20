@@ -46,3 +46,13 @@ export function inCheck(pos: Position, color: Color): boolean {
   if (pos.rules.atomic && kingsTouch(pos, color)) return false;
   return royals.some((s) => isAttacked(pos, s, opposite(color)));
 }
+
+/** Squares of `by` pieces that attack `square`. Used to judge sacrifices. */
+export function attackSquaresFor(pos: Position, square: number, by: Color): number[] {
+  const out: number[] = [];
+  for (let i = 0; i < pos.board.length; i++) {
+    const p = pos.board[i];
+    if (p && p.color === by && attackSquares(pos, i).includes(square)) out.push(i);
+  }
+  return out;
+}

@@ -4,7 +4,7 @@ export * from "./pieces";
 export * from "./setup";
 export * from "./game";
 export { legalMoves, matchLegal, isCapture, sameMove, pseudoMoves } from "./legal";
-export { inCheck, isAttacked, royalSquares } from "./attacks";
+export { inCheck, isAttacked, royalSquares, attackSquaresFor } from "./attacks";
 export { makeMove } from "./make";
 export { moveToSan, moveToUci } from "./notation";
 export { toFen, fromFen } from "./fen";
