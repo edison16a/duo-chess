@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { HistoryEntry } from "@/engine";
+import type { Color, HistoryEntry } from "@/engine";
 import { RATINGS } from "@/features/analysis";
 import { POWERS } from "@/features/powers";
 import { POWER_ICONS } from "@/features/powers/icons";
@@ -10,7 +10,8 @@ import { GlyphIcon } from "@/components/ui/icons";
 import { PieceImage } from "@/components/board/PieceImage";
 import styles from "./game.module.css";
 
-function Entry({ entry, showRatings }: { entry: HistoryEntry; showRatings: boolean }) {
+function Entry({ entry, showRatings, hidden }: { entry: HistoryEntry; showRatings: boolean; hidden: boolean }) {
+  if (hidden) return <span className={styles.hiddenMove}>Hidden</span>;
   if (entry.power) {
     const def = POWERS[entry.power];
     return (
@@ -31,8 +32,11 @@ function Entry({ entry, showRatings }: { entry: HistoryEntry; showRatings: boole
   );
 }
 
-/** Moves grouped by turn. Multi move turns and powers simply stack inside the same row. */
-export function MoveList({ history, showRatings }: { history: HistoryEntry[]; showRatings: boolean }) {
+/**
+ * Moves grouped by turn. Multi move turns and powers simply stack inside the
+ * same row. `hideFor` masks the opponent's moves in Fog of War.
+ */
+export function MoveList({ history, showRatings, hideFor = null }: { history: HistoryEntry[]; showRatings: boolean; hideFor?: Color | null }) {
   const end = useRef<HTMLDivElement>(null);
   useEffect(() => {
     end.current?.scrollIntoView({ block: "nearest" });
@@ -53,8 +57,8 @@ export function MoveList({ history, showRatings }: { history: HistoryEntry[]; sh
       {rows.map((row) => (
         <div key={row.n} className={styles.moveRow}>
           <span className={styles.moveNo}>{row.n}</span>
-          <span className={styles.moveCell}>{row.w.map((e) => <Entry key={e.ply} entry={e} showRatings={showRatings} />)}</span>
-          <span className={styles.moveCell}>{row.b.map((e) => <Entry key={e.ply} entry={e} showRatings={showRatings} />)}</span>
+          <span className={styles.moveCell}>{row.w.map((e) => <Entry key={e.ply} entry={e} showRatings={showRatings} hidden={!!hideFor && e.color !== hideFor} />)}</span>
+          <span className={styles.moveCell}>{row.b.map((e) => <Entry key={e.ply} entry={e} showRatings={showRatings} hidden={!!hideFor && e.color !== hideFor} />)}</span>
         </div>
       ))}
       <div ref={end} />

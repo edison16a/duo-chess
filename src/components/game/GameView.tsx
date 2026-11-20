@@ -108,7 +108,7 @@ export function GameView({ handle }: { handle: RoomHandle }) {
         {pos.rules.drops && me && (
           <PocketBar pocket={pos.pockets[me]} color={me} selected={v.dropKind} enabled={v.myTurn} onSelect={v.setDropKind} />
         )}
-        <MoveList history={game.history} showRatings={mods.ratings} />
+        <MoveList history={game.history} showRatings={mods.ratings} hideFor={mode.fog && v.playing ? me : null} />
         <GameControls
           playing={v.playing}
           seated={me !== null}
