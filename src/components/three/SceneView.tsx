@@ -15,6 +15,8 @@ interface Props {
   capture?: boolean;
   className?: string;
   onReady?: () => void;
+  /** Caps the device pixel ratio, for small canvases that run several at once. */
+  maxPixelRatio?: number;
 }
 
 declare global {
@@ -25,7 +27,7 @@ declare global {
   }
 }
 
-export function SceneView({ load, capture = false, className, onReady }: Props) {
+export function SceneView({ load, capture = false, className, onReady, maxPixelRatio }: Props) {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -37,7 +39,7 @@ export function SceneView({ load, capture = false, className, onReady }: Props) 
     (async () => {
       const def = await load();
       if (disposed) return;
-      const stage = createStage({ canvas, bloom: def.bloom ?? 0.35, dof: def.dof, pixelRatio: capture ? 1 : undefined });
+      const stage = createStage({ canvas, bloom: def.bloom ?? 0.35, dof: def.dof, pixelRatio: capture ? 1 : maxPixelRatio ? Math.min(window.devicePixelRatio, maxPixelRatio) : undefined });
       const fit = () => stage.resize(canvas.clientWidth, canvas.clientHeight);
       fit();
       const instance = await def.setup(stage);
@@ -82,7 +84,7 @@ export function SceneView({ load, capture = false, className, onReady }: Props) 
       cancelAnimationFrame(frame);
       cleanup?.();
     };
-  }, [load, capture, onReady]);
+  }, [load, capture, onReady, maxPixelRatio]);
 
   return <canvas ref={ref} className={className} style={{ width: "100%", height: "100%", display: "block" }} />;
 }
