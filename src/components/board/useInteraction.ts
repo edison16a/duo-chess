@@ -19,6 +19,8 @@ interface Options {
   onMove: (move: Move) => void;
   targeting: Targeting | null;
   dropKind: PieceKind | null;
+  /** Premoves skip the promotion picker and always promote to a queen. */
+  autoQueen?: boolean;
 }
 
 export interface Interaction {
@@ -43,7 +45,7 @@ function targetMap(moves: Move[]): Map<number, Move[]> {
   return map;
 }
 
-export function useInteraction({ pos, legal, onMove, targeting, dropKind }: Options): Interaction {
+export function useInteraction({ pos, legal, onMove, targeting, dropKind, autoQueen = false }: Options): Interaction {
   const [selected, setSelected] = useState<number | null>(null);
   const [promotion, setPromotion] = useState<Interaction["promotion"]>(null);
   const [duckFor, setDuckFor] = useState<Move | null>(null);
@@ -84,10 +86,12 @@ export function useInteraction({ pos, legal, onMove, targeting, dropKind }: Opti
   const tryTarget = useCallback((square: number): boolean => {
     const moves = targets.get(square);
     if (!moves?.length) return false;
-    if (moves.length > 1 && moves.every((m) => m.promotion)) setPromotion({ square, moves });
+    const promoting = moves.length > 1 && moves.every((m) => m.promotion);
+    if (promoting && autoQueen) commit(moves.find((m) => m.promotion === "queen") ?? moves[0]);
+    else if (promoting) setPromotion({ square, moves });
     else commit(moves.find((m) => m.castle) ?? moves[0]);
     return true;
-  }, [targets, commit]);
+  }, [targets, commit, autoQueen]);
 
   /** Pointer down. Returns true when a drag may start from this square. */
   const pressSquare = useCallback((square: number): boolean => {
