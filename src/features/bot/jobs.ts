@@ -18,8 +18,12 @@ const DRAW_THRESHOLD = 300;
 export function jobFor(state: RoomState, id: string): BotJob | null {
   const color = colorOf(state, id);
   if (!color) return null;
-  if (state.phase === "draft" && state.draft && state.draft.turn === color) {
-    return { kind: "draft", key: `draft:${state.draft.log.length}`, color };
+  const draft = state.draft;
+  if (state.phase === "draft" && draft) {
+    // Free Deck has no turns: the bot owes a hand until it has locked one in.
+    if (draft.style === "deck" ? !draft.locked[color] : draft.turn === color) {
+      return { kind: "draft", key: `draft:${draft.log.length}`, color };
+    }
   }
   const game = state.game;
   if (state.phase === "playing" && game && !game.result && game.pos.turn === color) {

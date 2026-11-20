@@ -84,8 +84,7 @@ export class BotPlayer {
     await this.sleep(600 + this.random() * 700);
     const draft = this.io.state().draft;
     if (!this.alive(job, epoch) || !draft) return;
-    const { keep, give } = chooseDraft(draft.options, this.random);
-    this.io.dispatch({ type: "draft", id: this.id, keep, give });
+    this.io.dispatch({ type: "draft", id: this.id, picks: chooseDraft(draft, this.random) });
   }
 
   private async move(job: BotJob, epoch: number): Promise<void> {

@@ -5,7 +5,7 @@
  */
 
 import { PIECES, neighbors, opposite, type Color, type GameState, type PieceKind, type Position } from "@/engine";
-import { POWERS, RARITIES, canUsePowerNow, type PowerDef } from "@/features/powers";
+import { ALL_POWERS, POWERS, RARITIES, RARITY_COST, canUsePowerNow, deckBudget, type DraftState, type PowerDef } from "@/features/powers";
 import { randomItem, shuffle } from "./pick";
 
 export interface PowerPlan {
@@ -13,13 +13,38 @@ export interface PowerPlan {
   squares: number[];
 }
 
-/** Keep the rarest option and hand the most common one to the opponent. */
-export function chooseDraft(options: string[], random: () => number): { keep: string; give: string } {
+/**
+ * The bot's draft answer. From offered cards it takes the rarest, which in
+ * a Split draft also hands the most common one to the opponent. In Free
+ * Deck it builds a whole hand.
+ */
+export function chooseDraft(draft: DraftState, random: () => number): string[] {
+  if (draft.style === "deck") return buildDeck(draft.size, random);
   // The random part is below one rarity step, so it only breaks ties.
-  const ranked = options
+  const ranked = draft.options
     .map((id) => ({ id, rank: RARITIES.indexOf(POWERS[id]?.rarity ?? "rare") + random() * 0.5 }))
     .sort((a, b) => b.rank - a.rank);
-  return { keep: ranked[0].id, give: ranked[ranked.length - 1].id };
+  return [ranked[0].id];
+}
+
+/**
+ * Spreads the budget evenly: each slot aims at what is left divided by the
+ * slots left, so the bot never blows everything on one card and then has
+ * to fill the rest with nothing.
+ */
+export function buildDeck(size: number, random: () => number): string[] {
+  const deck: string[] = [];
+  let left = deckBudget(size);
+  for (let slot = 0; slot < size; slot++) {
+    const slotsLeft = size - slot;
+    const target = Math.max(1, Math.min(5, Math.floor(left / slotsLeft)));
+    const pool = ALL_POWERS.filter((p) => !deck.includes(p.id) && RARITY_COST[p.rarity] <= target);
+    const best = Math.max(...pool.map((p) => RARITY_COST[p.rarity]));
+    const pick = randomItem(pool.filter((p) => RARITY_COST[p.rarity] === best), random);
+    deck.push(pick.id);
+    left -= RARITY_COST[pick.rarity];
+  }
+  return deck;
 }
 
 interface AimBase {

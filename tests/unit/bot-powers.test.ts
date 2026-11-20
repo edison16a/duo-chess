@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { createGame, createPosition, DEFAULT_RULES, legalMoves, parseSquare, playMove, standardLayout, type GameState } from "@/engine";
 import { scoreRootMoves } from "@/features/analysis/search";
-import { BOT_ID, BotBrain, BotPlayer, chooseDraft, chooseDuckSquare, planPower } from "@/features/bot";
+import { BOT_ID, BotBrain, BotPlayer, buildDeck, chooseDraft, chooseDuckSquare, planPower } from "@/features/bot";
 import { DEFAULT_MODS } from "@/features/modes";
-import { ALL_POWERS, POWERS, RARITIES, activatePower, powersOfRarity } from "@/features/powers";
+import { ALL_POWERS, activatePower, createDraft, deckBudget, deckCost, deckProblem, powersOfRarity } from "@/features/powers";
 import { createRoom, reduceRoom } from "@/features/room/reducer";
 import { randomMove } from "@/features/room/reducer/helpers";
 import type { RoomAction, RoomState } from "@/features/room/types";
@@ -20,17 +20,25 @@ function powerGame(w: string[], b: string[] = []): GameState {
 }
 
 describe("bot superpowers", () => {
-  it("keeps the rarest draft option and gives away the most common", () => {
+  it("keeps the rarest draft option", () => {
     const rare = powersOfRarity("rare")[0].id;
     const epic = powersOfRarity("epic")[0].id;
     const mythical = powersOfRarity("mythical")[0].id;
+    const offer = (options: string[]) => ({ ...createDraft("triple", 2, seeded(1)), options });
     for (let seed = 1; seed < 6; seed++) {
-      const pick = chooseDraft([epic, rare, mythical], seeded(seed));
-      expect(pick).toEqual({ keep: mythical, give: rare });
+      expect(chooseDraft(offer([epic, rare, mythical]), seeded(seed))).toEqual([mythical]);
     }
-    const pick = chooseDraft([rare, powersOfRarity("rare")[1].id, epic], seeded(9));
-    expect(pick.keep).toBe(epic);
-    expect(POWERS[pick.give].rarity).toBe(RARITIES[0]);
+    expect(chooseDraft(offer([rare, powersOfRarity("rare")[1].id, epic]), seeded(9))).toEqual([epic]);
+  });
+
+  it("builds a Free Deck that fits the budget and spends most of it", () => {
+    for (const size of [2, 4, 6, 8]) {
+      for (let seed = 1; seed < 5; seed++) {
+        const deck = buildDeck(size, seeded(seed));
+        expect(deckProblem(deck, size)).toBeNull();
+        expect(deckCost(deck)).toBeGreaterThanOrEqual(deckBudget(size) - 2);
+      }
+    }
   });
 
   it("aims harmful powers at valuable enemy pieces", () => {
@@ -79,7 +87,7 @@ describe("bot player in a room", () => {
     const base = createRoom("BOT", "me", "Me", Date.now());
     let room: RoomState = {
       ...base,
-      config: { ...base.config, mode: "superpowers", hostColor: "w", draftRounds: 3, mods: { ...DEFAULT_MODS, clock: null } },
+      config: { ...base.config, mode: "superpowers", hostColor: "w", draftStyle: "split", powersEach: 6, mods: { ...DEFAULT_MODS, clock: null } },
     };
     const brain = new BotBrain({ search: async (pos, depth) => scoreRootMoves(pos, depth, 600) }, random);
     const dispatch = (action: RoomAction) => {
@@ -95,8 +103,7 @@ describe("bot player in a room", () => {
 
     for (let step = 0; step < 400 && room.phase !== "over" && (room.game?.history.length ?? 0) < 40; step++) {
       if (room.phase === "draft" && room.draft?.turn === "w") {
-        const [keep, give] = room.draft.options;
-        dispatch({ type: "draft", id: "me", keep, give });
+        dispatch({ type: "draft", id: "me", picks: [room.draft.options[0]] });
       } else if (room.phase === "playing" && room.game?.pos.turn === "w") {
         dispatch({ type: "move", id: "me", move: randomMove(room, ctx())! });
       }
