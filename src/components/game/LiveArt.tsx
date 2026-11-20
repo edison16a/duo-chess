@@ -21,7 +21,7 @@ export default function LiveArt({ id }: { id: string }) {
   if (calm) return null;
   return (
     <span className={`${styles.live} ${ready ? styles.liveReady : ""}`} aria-hidden data-live-art={id}>
-      <SceneView load={load} onReady={onReady} maxPixelRatio={1.5} />
+      <SceneView load={load} onReady={onReady} maxPixelRatio={1.5} optional />
     </span>
   );
 }

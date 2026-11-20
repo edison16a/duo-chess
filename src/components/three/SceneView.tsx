@@ -6,7 +6,8 @@
  * script can step exact frames.
  */
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { claimContext, releaseContext } from "@/three/core/contextBudget";
 import { createStage } from "@/three/core/stage";
 import type { SceneDef } from "@/three/scenes/types";
 
@@ -17,6 +18,8 @@ interface Props {
   onReady?: () => void;
   /** Caps the device pixel ratio, for small canvases that run several at once. */
   maxPixelRatio?: number;
+  /** Nice to have views (live card art) stay blank when too many 3D views are open; see contextBudget. */
+  optional?: boolean;
 }
 
 declare global {
@@ -27,18 +30,26 @@ declare global {
   }
 }
 
-export function SceneView({ load, capture = false, className, onReady, maxPixelRatio }: Props) {
+export function SceneView({ load, capture = false, className, onReady, maxPixelRatio, optional = false }: Props) {
   const ref = useRef<HTMLCanvasElement>(null);
+  // A canvas whose context was released cannot host another, so a rerun of the effect gets a new one.
+  const [generation, setGeneration] = useState(0);
 
   useEffect(() => {
     let disposed = false;
     let frame = 0;
     const canvas = ref.current!;
+    if (canvas.dataset.released) {
+      setGeneration((g) => g + 1);
+      return;
+    }
     let cleanup: (() => void) | null = null;
 
+    let claimed = false;
     (async () => {
       const def = await load();
-      if (disposed) return;
+      if (disposed || !claimContext(optional)) return;
+      claimed = true;
       const stage = createStage({ canvas, bloom: def.bloom ?? 0.35, dof: def.dof, pixelRatio: capture ? 1 : maxPixelRatio ? Math.min(window.devicePixelRatio, maxPixelRatio) : undefined });
       const fit = () => stage.resize(canvas.clientWidth, canvas.clientHeight);
       fit();
@@ -83,8 +94,9 @@ export function SceneView({ load, capture = false, className, onReady, maxPixelR
       disposed = true;
       cancelAnimationFrame(frame);
       cleanup?.();
+      if (claimed) releaseContext();
     };
-  }, [load, capture, onReady, maxPixelRatio]);
+  }, [load, capture, onReady, maxPixelRatio, optional, generation]);
 
-  return <canvas ref={ref} className={className} style={{ width: "100%", height: "100%", display: "block" }} />;
+  return <canvas key={generation} ref={ref} className={className} style={{ width: "100%", height: "100%", display: "block" }} />;
 }
