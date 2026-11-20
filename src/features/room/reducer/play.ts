@@ -1,7 +1,7 @@
 /** In game actions: moves, powers, the draft, clocks and endings. */
 
 import { opposite, playMove, type Move } from "@/engine";
-import { activatePower, applyDraftPick, draftDone } from "@/features/powers";
+import { activatePower, applyDraft, draftDone } from "@/features/powers";
 import { chargeMove, remaining } from "../clock";
 import type { ReduceCtx, RoomAction, RoomState } from "../types";
 import { beginGame, colorOf, finish, nextDeadline, notice, randomMove, startPlay } from "./helpers";
@@ -44,7 +44,7 @@ export function reducePlay(state: RoomState, action: PlayAction, ctx: ReduceCtx)
     case "draft": {
       const color = colorOf(state, action.id);
       if (state.phase !== "draft" || !state.draft || !color) return state;
-      const draft = applyDraftPick(state.draft, color, action.keep, action.give, ctx.random);
+      const draft = applyDraft(state.draft, color, action.picks, ctx.random);
       if (typeof draft === "string") return notice(state, action.id, draft, ctx);
       const next = { ...state, draft };
       return draftDone(draft) ? startPlay(next, ctx) : next;

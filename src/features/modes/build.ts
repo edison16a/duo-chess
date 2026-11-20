@@ -3,6 +3,7 @@
 import { createGame, createPosition, DEFAULT_RULES, standardLayout, type GameState, type Layout, type Rules } from "@/engine";
 import { PREMADE_MAPS, type ChessMap } from "@/features/maps";
 import { MODE_BY_ID } from "./catalog";
+import type { DraftStyle } from "@/features/powers/draft";
 import type { ModeId, Mods } from "./types";
 
 export interface GameConfig {
@@ -12,8 +13,10 @@ export interface GameConfig {
   /** Full map data when the host picked one of their own maps. */
   customMap: ChessMap | null;
   hostColor: "w" | "b" | "random";
-  /** Picks each player makes in the superpower draft. */
-  draftRounds: number;
+  /** How the superpower draft runs. */
+  draftStyle: DraftStyle;
+  /** Powers each player goes into the game with. */
+  powersEach: number;
 }
 
 export function resolveMap(config: GameConfig): ChessMap {

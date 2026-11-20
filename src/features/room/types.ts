@@ -49,7 +49,7 @@ export type RoomAction =
   | { type: "config"; id: string; config: Partial<GameConfig> }
   | { type: "swap"; id: string }
   | { type: "start"; id: string }
-  | { type: "draft"; id: string; keep: string; give: string }
+  | { type: "draft"; id: string; picks: string[] }
   | { type: "move"; id: string; move: Move }
   | { type: "power"; id: string; power: string; squares: number[] }
   | { type: "resign"; id: string }

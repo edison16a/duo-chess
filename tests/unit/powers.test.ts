@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createGame, createPosition, legalMoves, parseSquare, playMove, standardLayout, type GameState } from "@/engine";
-import { ALL_POWERS, activatePower, applyDraftPick, createDraft, draftDone, rollOptions } from "@/features/powers";
+import { ALL_POWERS, activatePower, applyDraft, createDraft, deckBudget, deckCost, draftDone, rollOptions, type DraftStyle } from "@/features/powers";
 import { POWER_ICONS } from "@/features/powers/icons";
 
 function poweredGame(powers: string[]): GameState {
@@ -88,21 +88,51 @@ describe("activating powers", () => {
 });
 
 describe("draft", () => {
-  it("rolls three distinct options", () => {
-    const options = rollOptions(seeded());
-    expect(new Set(options).size).toBe(3);
+  it("rolls distinct options", () => {
+    expect(new Set(rollOptions(seeded())).size).toBe(3);
+    expect(new Set(rollOptions(seeded(), 2)).size).toBe(2);
   });
 
-  it("alternates picks and hands powers to both sides", () => {
+  const play = (style: DraftStyle) => {
     const random = seeded();
-    let draft = createDraft(2, random);
+    let draft = createDraft(style, 4, random);
+    let picks = 0;
     while (!draftDone(draft)) {
-      const [keep, give] = draft.options;
-      const next = applyDraftPick(draft, draft.turn, keep, give, random);
+      const next = applyDraft(draft, draft.turn, [draft.options[0]], random);
       expect(typeof next).toBe("object");
       draft = next as typeof draft;
+      picks++;
     }
+    return { draft, picks };
+  };
+
+  it("Split hands the other card to the opponent", () => {
+    const { draft, picks } = play("split");
+    expect(picks).toBe(4);
+    expect(draft.log[0].give).not.toBeNull();
     expect(draft.inventory.w).toHaveLength(4);
     expect(draft.inventory.b).toHaveLength(4);
+  });
+
+  it("Triple keeps one card and gives nothing away", () => {
+    const { draft, picks } = play("triple");
+    expect(picks).toBe(8);
+    expect(draft.log.every((p) => p.give === null)).toBe(true);
+    expect(draft.inventory.w).toEqual(draft.log.filter((p) => p.by === "w").map((p) => p.keep));
+    expect(draft.inventory.b).toHaveLength(4);
+  });
+
+  it("refuses picks out of turn or off the table", () => {
+    const random = seeded();
+    const draft = createDraft("triple", 2, random);
+    expect(typeof applyDraft(draft, "b", [draft.options[0]], random)).toBe("string");
+    const offTable = ALL_POWERS.find((p) => !draft.options.includes(p.id))!.id;
+    expect(typeof applyDraft(draft, "w", [offTable], random)).toBe("string");
+  });
+
+  it("prices Free Deck cards by rarity", () => {
+    expect(deckBudget(4)).toBe(10);
+    const rares = ALL_POWERS.filter((p) => p.rarity === "rare").slice(0, 3).map((p) => p.id);
+    expect(deckCost(rares)).toBe(3);
   });
 });

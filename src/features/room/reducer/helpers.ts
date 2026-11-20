@@ -32,7 +32,7 @@ export function beginGame(state: RoomState, ctx: ReduceCtx, seats: Record<Color,
   const game = buildGame(state.config, ctx.random);
   const base: RoomState = { ...state, seats, game, drawOffer: null, rematch: [], notice: null, clock: null, moveDeadline: null };
   if (MODE_BY_ID[state.config.mode].powers) {
-    return { ...base, phase: "draft", draft: createDraft(state.config.draftRounds, ctx.random) };
+    return { ...base, phase: "draft", draft: createDraft(state.config.draftStyle ?? "split", state.config.powersEach ?? 4, ctx.random) };
   }
   return startPlay({ ...base, draft: null }, ctx);
 }

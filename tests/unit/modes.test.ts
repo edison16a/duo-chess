@@ -4,7 +4,7 @@ import { PREMADE_MAPS, mapProblem } from "@/features/maps";
 import { DEFAULT_MODS, MODES, buildGame, type GameConfig } from "@/features/modes";
 
 const config = (patch: Partial<GameConfig>): GameConfig => ({
-  mode: "classic", mods: DEFAULT_MODS, mapId: PREMADE_MAPS[0].id, customMap: null, hostColor: "w", draftRounds: 2, ...patch,
+  mode: "classic", mods: DEFAULT_MODS, mapId: PREMADE_MAPS[0].id, customMap: null, hostColor: "w", draftStyle: "split", powersEach: 4, ...patch,
 });
 
 describe("modes", () => {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseSquare } from "@/engine";
 import { DEFAULT_MODS } from "@/features/modes";
+import { powersOfRarity } from "@/features/powers";
 import { createRoom, reduceRoom } from "@/features/room/reducer";
 import type { RoomAction, RoomState } from "@/features/room/types";
 
@@ -56,11 +57,24 @@ describe("room reducer", () => {
     expect(room.phase).toBe("draft");
     for (let i = 0; i < 4; i++) {
       const id = room.draft!.turn === "w" ? "host" : "guest";
-      const [keep, give] = room.draft!.options;
-      room = run(room, { type: "draft", id, keep, give });
+      room = run(room, { type: "draft", id, picks: [room.draft!.options[0]] });
     }
     expect(room.phase).toBe("playing");
     expect(room.game!.powers!.inventory.w).toHaveLength(4);
+  });
+
+  it("starts a Free Deck game once both hands are locked in", () => {
+    let room = run(lobby({ mode: "superpowers", draftStyle: "deck", powersEach: 2 }), { type: "start", id: "host" });
+    const deck = [powersOfRarity("rare")[0].id, powersOfRarity("legendary")[0].id];
+    room = run(room, { type: "draft", id: "guest", picks: deck });
+    expect(room.phase).toBe("draft");
+    expect(room.draft!.locked).toEqual({ w: false, b: true });
+    // Two mythicals cost 8 points, over the 5 point budget for two powers.
+    const greedy = powersOfRarity("mythical").slice(0, 2).map((p) => p.id);
+    expect(run(room, { type: "draft", id: "host", picks: greedy }).phase).toBe("draft");
+    room = run(room, { type: "draft", id: "host", picks: deck });
+    expect(room.phase).toBe("playing");
+    expect(room.game!.powers!.inventory.b).toEqual(deck);
   });
 
   it("resigns, then rematches with swapped colors", () => {

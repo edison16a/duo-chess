@@ -20,7 +20,7 @@ export function createRoom(code: string, hostId: string, hostName: string, now: 
     players: [{ id: hostId, name: cleanName(hostName), online: true }],
     seats: { w: null, b: null },
     phase: "lobby",
-    config: { mode: "classic", mods: DEFAULT_MODS, mapId: PREMADE_MAPS[0].id, customMap: null, hostColor: "random", draftRounds: 2 },
+    config: { mode: "classic", mods: DEFAULT_MODS, mapId: PREMADE_MAPS[0].id, customMap: null, hostColor: "random", draftStyle: "split", powersEach: 4 },
     draft: null,
     game: null,
     clock: null,
