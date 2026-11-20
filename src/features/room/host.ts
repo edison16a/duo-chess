@@ -5,11 +5,24 @@
 
 import { MoveAnalyzer } from "@/features/analysis";
 import { MODE_BY_ID } from "@/features/modes";
-import type { RoomChannel } from "@/features/net";
 import { reduceRoom } from "./reducer";
 import type { RoomAction, RoomState } from "./types";
 
 const TICK_MS = 200;
+
+/**
+ * Where the host sends each snapshot. RoomChannel fills this over MQTT;
+ * a local bot game passes LOCAL_CHANNEL so nothing leaves the tab.
+ */
+export interface StatePublisher {
+  publishState(state: RoomState): void;
+  clearState(): void;
+}
+
+export const LOCAL_CHANNEL: StatePublisher = {
+  publishState: () => undefined,
+  clearState: () => undefined,
+};
 
 export class HostController {
   private timer: ReturnType<typeof setInterval>;
@@ -18,7 +31,7 @@ export class HostController {
 
   constructor(
     private state: RoomState,
-    private channel: RoomChannel,
+    private channel: StatePublisher,
     private onChange: (state: RoomState) => void,
   ) {
     this.publish(state);
