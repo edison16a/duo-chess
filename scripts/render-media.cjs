@@ -1,7 +1,7 @@
 // Renders the animated mode loops and power posters used by the UI.
 //
 //   NEXT_DIST_DIR=.next-media npx next dev -p 3110 &
-//   node scripts/render-media.cjs [modes|powers|all] [only,these,ids]
+//   node scripts/render-media.cjs [modes|powers|battlefield|all] [only,these,ids]
 //
 // Each scene is stepped frame by frame through window.__renderAt in a
 // headless Chromium with software WebGL, so output is identical on any
@@ -68,10 +68,27 @@ async function powerPoster(page, id) {
   console.log("power", id);
 }
 
+/** Still of the landing battlefield, shown before the live scene loads. */
+async function battlefieldPoster(page) {
+  const fps = 20;
+  await page.setViewportSize({ width: 1600, height: 1000 });
+  await page.goto(`${BASE}/render?scene=battlefield&capture=1`);
+  await page.waitForFunction(() => window.__sceneReady, null, { timeout: 180000 });
+  const at = (await page.evaluate(() => window.__posterAt)) ?? 5;
+  for (let i = 0; i <= Math.round(at * fps); i++) await page.evaluate((t) => window.__renderAt(t), i / fps);
+  const file = path.join(TMP, "battlefield.png");
+  await page.screenshot({ path: file });
+  fs.mkdirSync(OUT, { recursive: true });
+  execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", file, "-quality", "78", path.join(OUT, "battlefield.webp")]);
+  console.log("battlefield");
+}
+
 (async () => {
   const browser = await chromium.launch({ args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
   const page = await browser.newPage();
   page.on("pageerror", (e) => console.log("[pageerror]", e.message));
+  fs.mkdirSync(TMP, { recursive: true });
+  if (what === "battlefield" || what === "all") await battlefieldPoster(page);
   if (what === "modes" || what === "all") for (const id of MODES) if (!pick || pick.has(id)) await modeClip(page, id);
   if (what === "powers" || what === "all") {
     for (const id of powerIds()) if (!pick || pick.has(id)) await powerPoster(page, id);
