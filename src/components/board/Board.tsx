@@ -1,14 +1,18 @@
 "use client";
 
-import { useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { FILES, type Color, type GameEvent, type Move, type PieceKind, type Position, type RatingId } from "@/engine";
+import { useMemo, useRef, useState } from "react";
+import { FILES, positionKey, type Color, type GameEvent, type Move, type PieceKind, type Position, type RatingId } from "@/engine";
+import { ArrowLayer, MarkLayer, PremoveLayer } from "./Annotations";
 import { Effects } from "./Effects";
-import { cellOf, cellStyle, isLightSquare, squareAt } from "./layout";
+import { cellOf, cellStyle, isLightSquare } from "./layout";
 import { FogLayer, HintLayer, UnderLayer } from "./Overlays";
 import { PieceLayer } from "./PieceLayer";
 import { PromotionPicker } from "./PromotionPicker";
 import type { BoardTheme } from "./themes";
+import { useAnnotations } from "./useAnnotations";
+import { useBoardPointer } from "./useBoardPointer";
 import { useInteraction, type Targeting } from "./useInteraction";
+import type { PremoveControl } from "./usePremove";
 import { fogVisible } from "./visibility";
 import styles from "./board.module.css";
 
@@ -29,23 +33,27 @@ export interface BoardProps {
   targeting: (Targeting & { color: string }) | null;
   dropKind: PieceKind | null;
   rating: { square: number; id: RatingId; key: string } | null;
-}
-
-interface Drag {
-  square: number;
-  startX: number;
-  startY: number;
-  dx: number;
-  dy: number;
-  moved: boolean;
+  /** Set while you may queue a premove (your opponent is to move). */
+  premove?: PremoveControl | null;
 }
 
 export function Board(props: BoardProps) {
   const { pos, orientation, viewer, theme, legal, onMove, targeting, dropKind } = props;
   const ref = useRef<HTMLDivElement>(null);
-  const [drag, setDrag] = useState<Drag | null>(null);
   const [shaking, setShaking] = useState(false);
-  const ui = useInteraction({ pos, legal, onMove, targeting, dropKind });
+  // Premoves reuse the normal click and drag flow, fed with premove targets.
+  const premove = props.premove && !targeting && !dropKind ? props.premove : null;
+  const ui = useInteraction({
+    pos,
+    legal: premove ? premove.moves : legal,
+    onMove: premove ? premove.onQueue : onMove,
+    targeting,
+    dropKind,
+    autoQueen: !!premove,
+  });
+  const notes = useAnnotations(positionKey(pos));
+  const pointer = useBoardPointer({ ref, pos, orientation, ui, notes, premove });
+  const drag = pointer.drag;
 
   const visible = useMemo(() => (props.fog && viewer ? fogVisible(pos, viewer) : null), [props.fog, viewer, pos]);
   const aimSquares = useMemo(() => {
@@ -53,44 +61,15 @@ export function Board(props: BoardProps) {
     return new Set(pos.board.map((_, s) => s).filter((s) => !pos.holes.includes(s) && targeting.valid(s)));
   }, [targeting, pos]);
 
-  const squareFromPointer = (e: { clientX: number; clientY: number }): number | null => {
-    const rect = ref.current!.getBoundingClientRect();
-    const col = Math.floor(((e.clientX - rect.left) / rect.width) * pos.width);
-    const row = Math.floor(((e.clientY - rect.top) / rect.height) * pos.height);
-    return squareAt(pos, col, row, orientation);
-  };
-
-  const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (e.button !== 0) return;
-    const square = squareFromPointer(e);
-    if (square === null) return;
-    if (ui.pressSquare(square)) {
-      ref.current?.setPointerCapture(e.pointerId);
-      setDrag({ square, startX: e.clientX, startY: e.clientY, dx: 0, dy: 0, moved: false });
-    }
-  };
-
-  const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (!drag) return;
-    const dx = e.clientX - drag.startX, dy = e.clientY - drag.startY;
-    setDrag({ ...drag, dx, dy, moved: drag.moved || Math.hypot(dx, dy) > 5 });
-  };
-
-  const onPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (!drag) return;
-    ui.releaseSquare(squareFromPointer(e), drag.moved);
-    setDrag(null);
-  };
-
   return (
     <div
       ref={ref}
       className={`${styles.board} ${shaking ? styles.shake : ""}`}
       style={{ aspectRatio: `${pos.width} / ${pos.height}`, ["--light" as string]: theme.light, ["--dark" as string]: theme.dark }}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={() => setDrag(null)}
+      onPointerDown={pointer.onPointerDown}
+      onPointerMove={pointer.onPointerMove}
+      onPointerUp={pointer.onPointerUp}
+      onPointerCancel={pointer.onPointerCancel}
       onContextMenu={(e) => e.preventDefault()}
       data-testid="board"
     >
@@ -105,6 +84,8 @@ export function Board(props: BoardProps) {
         );
       })}
       <UnderLayer {...props} selected={ui.selected} targets={new Set()} duckSquares={new Set()} aimSquares={new Set()} aimColor={null} />
+      <PremoveLayer pos={pos} orientation={orientation} move={premove?.queued ?? null} />
+      <MarkLayer pos={pos} orientation={orientation} marks={notes.marks} />
       <PieceLayer
         pos={pos}
         orientation={orientation}
@@ -116,6 +97,7 @@ export function Board(props: BoardProps) {
       />
       <HintLayer {...props} selected={ui.selected} targets={new Set(ui.targets.keys())} duckSquares={ui.duckSquares} aimSquares={aimSquares} aimColor={targeting?.color ?? null} />
       <FogLayer pos={pos} orientation={orientation} visible={visible} />
+      <ArrowLayer pos={pos} orientation={orientation} arrows={notes.arrows} drawing={notes.drawing} />
       <Effects pos={pos} orientation={orientation} events={props.events} seq={props.eventSeq} onShake={() => { setShaking(true); setTimeout(() => setShaking(false), 450); }} />
       {ui.promotion && <PromotionPicker moves={ui.promotion.moves} color={pos.turn} onPick={ui.choosePromotion} />}
     </div>
