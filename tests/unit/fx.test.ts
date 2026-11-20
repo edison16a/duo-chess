@@ -19,5 +19,6 @@ describe("low detail effects", () => {
     expect(ratingsShow({ ...old, ratings: false } as unknown as Mods)).toBe("off");
     expect(fxLevel(old)).toBe("full");
     expect(ratingsShow({ ...DEFAULT_MODS, ratings: "list" })).toBe("list");
+    expect(ratingsShow({ ...DEFAULT_MODS, ratings: "minimal" })).toBe("minimal");
   });
 });

@@ -7,7 +7,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ratingsShow } from "@/features/fx";
+import { ratingsShow, type RatingMark } from "@/features/fx";
 import {
   PIECES, inCheck, legalMoves, opposite, playMove, positionKey, royalSquares,
   type Color, type GameState, type Move, type PieceKind, type Position,
@@ -96,9 +96,10 @@ export function useGameView(handle: RoomHandle) {
   const checkSquares = checkSquaresOf(pos);
 
   const last = game.history[game.history.length - 1];
-  // The badge, burst and sound only play when ratings show on the board, not just in the move list.
-  const rating = ratingsShow(room.config.mods) === "board" && last?.rating && !last.power
-    ? { square: last.move.to, id: last.rating, key: `${last.ply}` }
+  // Ratings on the board come as the full show or, on Minimal, a quiet badge with no glow, shake or sound.
+  const show = ratingsShow(room.config.mods);
+  const rating: RatingMark | null = (show === "board" || show === "minimal") && last?.rating && !last.power
+    ? { square: last.move.to, id: last.rating, key: `${last.ply}`, quiet: show === "minimal" }
     : null;
 
   // Sounds for ratings, game start and game end, each played once.
@@ -106,7 +107,7 @@ export function useGameView(handle: RoomHandle) {
   useEffect(() => {
     if (rating && !rated.current.has(last.ply)) {
       rated.current.add(last.ply);
-      sfx.rating(rating.id);
+      if (!rating.quiet) sfx.rating(rating.id);
     }
   }, [rating, last]);
   const phaseRef = useRef(room.phase);

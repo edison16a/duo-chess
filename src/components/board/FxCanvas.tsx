@@ -5,6 +5,7 @@
  * renders instantly and the effects layer joins a moment later.
  */
 
+import type { RatingMark } from "@/features/fx";
 import { useEffect, useRef } from "react";
 import type { Color, GameEvent, Position, RatingId } from "@/engine";
 import type { FxOverlay } from "@/three/overlay/FxOverlay";
@@ -16,7 +17,7 @@ interface Props {
   viewer: Color | null;
   events: GameEvent[];
   seq: number;
-  rating: { square: number; id: RatingId; key: string } | null;
+  rating: RatingMark | null;
   /** These events ended the game. */
   finale?: boolean;
 }
@@ -64,6 +65,7 @@ export function FxCanvas({ pos, orientation, viewer, events, seq, rating, finale
   useEffect(() => {
     if (!rating || rating.key === rated.current) return;
     rated.current = rating.key;
+    if (rating.quiet) return;
     overlay.current?.playRating(rating.id, rating.square);
   }, [rating]);
 

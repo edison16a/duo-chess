@@ -80,7 +80,7 @@ export function ModsPanel({ config, disabled, onChange }: Props) {
       )}
       <Row icon="sparkle" label="Ratings">
         <Segmented
-          options={[{ label: "Off", value: "off" as const }, { label: "Move list", value: "list" as const }, { label: "Board", value: "board" as const }]}
+          options={[{ label: "Off", value: "off" as const }, { label: "Move list", value: "list" as const }, { label: "Minimal", value: "minimal" as const }, { label: "Full", value: "board" as const }]}
           value={ratingsShow(mods)}
           onChange={(ratings) => set({ ratings })}
           disabled={disabled}

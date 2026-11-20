@@ -1,5 +1,6 @@
 "use client";
 
+import type { RatingMark } from "@/features/fx";
 import { useMemo, useRef, useState } from "react";
 import { FILES, positionKey, type Color, type GameEvent, type Move, type PieceKind, type Position, type RatingId } from "@/engine";
 import { ArrowLayer, MarkLayer, PremoveLayer } from "./Annotations";
@@ -35,7 +36,7 @@ export interface BoardProps {
   blindfold: boolean;
   targeting: (Targeting & { color: string }) | null;
   dropKind: PieceKind | null;
-  rating: { square: number; id: RatingId; key: string } | null;
+  rating: RatingMark | null;
   /** Set while you may queue a premove (your opponent is to move). */
   premove?: PremoveControl | null;
   /** Low swaps the 3D effects for square flashes and drops the shake. */

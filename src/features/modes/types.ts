@@ -34,8 +34,8 @@ export interface ClockSetting {
 /** Toggles that stack on top of any mode. */
 export interface Mods {
   clock: ClockSetting | null;
-  /** Where move ratings show: nowhere, only in the move list, or on the board too. */
-  ratings: "off" | "list" | "board";
+  /** Where move ratings show: nowhere, only in the move list, a plain badge on the board, or the full show. */
+  ratings: "off" | "list" | "minimal" | "board";
   evalBar: boolean;
   /** Seconds per move before a random move is played for you. 0 is off. */
   moveTimer: number;

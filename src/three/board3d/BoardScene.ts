@@ -25,6 +25,8 @@ export interface RatingBadge {
   glyph: string;
   color: string;
   key: string;
+  /** Badge only, no burst. */
+  quiet?: boolean;
 }
 
 export class BoardScene {
@@ -116,7 +118,7 @@ export class BoardScene {
     const at = squareToWorld(this.shape, rating.square);
     const id = this.pieces.idAt(rating.square);
     const height = (id !== null && this.pieces.anchor(id)?.height) || 1.1;
-    if (this.badgeKey !== rating.key && !this.lite) this.effects.play(ratingEffect(rating.id, height), at);
+    if (this.badgeKey !== rating.key && !this.lite && !rating.quiet) this.effects.play(ratingEffect(rating.id, height), at);
     this.badgeKey = rating.key;
     this.badge = new THREE.Sprite(new THREE.SpriteMaterial({ map: badgeTexture(rating.glyph, rating.color), depthTest: false, transparent: true }));
     this.badge.scale.setScalar(0.5);

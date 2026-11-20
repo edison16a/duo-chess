@@ -67,7 +67,7 @@ Every game can be played on a flat 2D board or a full 3D board, picked under **B
 
 ### Mods
 
-Mods stack on top of any mode: a chess clock (unlimited by default, or bullet to classical), a per move timer with a visible countdown, the 2D or 3D board, where ratings show (off, move list only, or on the board too), effect detail, an eval bar, blindfold, and which color the host plays. **Effects: Low** swaps every 3D effect for plain square flashes (an atomic blast just turns its squares red) and keeps only the rating badge, for slower machines or calmer games.
+Mods stack on top of any mode: a chess clock (unlimited by default, or bullet to classical), a per move timer with a visible countdown, the 2D or 3D board, where ratings show (off, move list only, a plain badge on the board with no glow, shake or sound, or the full show), effect detail, an eval bar, blindfold, and which color the host plays. **Effects: Low** swaps every 3D effect for plain square flashes (an atomic blast just turns its squares red) and keeps only the rating badge, for slower machines or calmer games.
 
 ### Board controls
 

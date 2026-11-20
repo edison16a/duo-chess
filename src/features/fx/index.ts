@@ -4,11 +4,20 @@
  * the flat board can use it without loading the 3D code.
  */
 
-import type { GameEvent } from "@/engine";
+import type { GameEvent, RatingId } from "@/engine";
 import type { Mods } from "@/features/modes";
 
 export type FxLevel = "full" | "low";
-export type RatingsShow = "off" | "list" | "board";
+/** Minimal shows the badge on the board but skips the glow, shake, burst and sound. */
+export type RatingsShow = "off" | "list" | "minimal" | "board";
+
+/** A rating shown on the board. Quiet marks get the badge and nothing else. */
+export interface RatingMark {
+  square: number;
+  id: RatingId;
+  key: string;
+  quiet?: boolean;
+}
 
 export function fxLevel(mods: Mods): FxLevel {
   return mods.fx === "low" ? "low" : "full";

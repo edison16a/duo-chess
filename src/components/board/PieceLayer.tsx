@@ -1,3 +1,4 @@
+import type { RatingMark } from "@/features/fx";
 import { RatingGlyph } from "@/components/ui/RatingGlyph";
 import { RATINGS } from "@/features/analysis";
 import { opposite, type Color, type Position, type RatingId } from "@/engine";
@@ -13,7 +14,7 @@ interface Props {
   visible: Set<number> | null;
   blindfold: boolean;
   drag: { square: number; dx: number; dy: number } | null;
-  rating: { square: number; id: RatingId; key: string } | null;
+  rating: RatingMark | null;
 }
 
 /**
@@ -45,8 +46,8 @@ export function PieceLayer({ pos, orientation, viewer, visible, blindfold, drag,
           status.poisoned && fx.poisoned,
           status.blessed && fx.blessed,
           status.hidden && fx.smoked,
-          rated && fx.rated,
-          rated && RATINGS[rated.id].dramatic && fx[`rate_${rated.id}`],
+          rated && !rated.quiet && fx.rated,
+          rated && !rated.quiet && RATINGS[rated.id].dramatic && fx[`rate_${rated.id}`],
         ].filter(Boolean).join(" ");
         return (
           <div key={piece.id} className={classes} style={{ ...style, ["--rate" as string]: rated ? RATINGS[rated.id].color : undefined }}>
