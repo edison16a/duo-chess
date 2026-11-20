@@ -89,9 +89,13 @@ async function battlefieldPoster(page) {
   page.on("pageerror", (e) => console.log("[pageerror]", e.message));
   fs.mkdirSync(TMP, { recursive: true });
   if (what === "battlefield" || what === "all") await battlefieldPoster(page);
-  if (what === "modes" || what === "all") for (const id of MODES) if (!pick || pick.has(id)) await modeClip(page, id);
+  // One broken scene should not stop the batch; report it and keep going.
+  const safely = async (label, job) => {
+    try { await job(); } catch (e) { console.log(`FAILED ${label}: ${e.message.split("\n")[0]}`); process.exitCode = 1; }
+  };
+  if (what === "modes" || what === "all") for (const id of MODES) if (!pick || pick.has(id)) await safely(`mode ${id}`, () => modeClip(page, id));
   if (what === "powers" || what === "all") {
-    for (const id of powerIds()) if (!pick || pick.has(id)) await powerPoster(page, id);
+    for (const id of powerIds()) if (!pick || pick.has(id)) await safely(`power ${id}`, () => powerPoster(page, id));
   }
   await browser.close();
 })();
