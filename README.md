@@ -71,7 +71,7 @@ Mods stack on top of any mode: a chess clock (unlimited by default, or bullet to
 
 ### Board controls
 
-The board behaves like the big chess sites. Click or drag to move. Right click a square to highlight it and right drag to draw an arrow (knight jumps bend into an L); hold Shift, Ctrl or Alt for green, blue or red. While your opponent thinks you can queue a premove, which plays the moment your turn comes if it is still legal. Click any move in the list, or use the arrow keys, to step back through the game; End returns to the live position.
+The board behaves like the big chess sites. Click or drag to move. Right click a square to highlight it and right drag to draw an arrow (knight jumps bend into an L); hold Shift, Ctrl or Alt for green, blue or red. While your opponent thinks you can queue premoves, even a chain of them: each one moves the piece on your board right away, so you can walk a pawn up the board, and they play one per turn as long as they stay legal. Click any move in the list, or use the arrow keys, to step back through the game; End returns to the live position.
 
 ### Move ratings
 
