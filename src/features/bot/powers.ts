@@ -5,7 +5,7 @@
  */
 
 import { PIECES, neighbors, opposite, type Color, type GameState, type PieceKind, type Position } from "@/engine";
-import { ALL_POWERS, POWERS, RARITIES, RARITY_COST, canUsePowerNow, deckBudget, type DraftState, type PowerDef } from "@/features/powers";
+import { ALL_POWERS, POWERS, RARITIES, RARITY_COST, canUsePowerNow, deckBudget, readyPowers, type DraftState, type PowerDef } from "@/features/powers";
 import { randomItem, shuffle } from "./pick";
 
 export interface PowerPlan {
@@ -99,7 +99,8 @@ function aimTargets(def: PowerDef, base: AimBase, aim: number, random: () => num
 export function planPower(game: GameState, color: Color, aim: number, random: () => number): PowerPlan | null {
   if (!game.powers || !canUsePowerNow(game, color)) return null;
   const base: AimBase = { pos: game.pos, color, enemy: opposite(color), lost: game.lost };
-  for (const id of shuffle([...new Set(game.powers.inventory[color])], random)) {
+  // Only ready powers count, so in Random style the bot waits out cooldowns like anyone else.
+  for (const id of shuffle([...new Set(readyPowers(game.powers, color))], random)) {
     const def = POWERS[id];
     if (!def || (def.available && !def.available(base))) continue;
     const squares = aimTargets(def, base, aim, random);
