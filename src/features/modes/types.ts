@@ -34,22 +34,26 @@ export interface ClockSetting {
 /** Toggles that stack on top of any mode. */
 export interface Mods {
   clock: ClockSetting | null;
-  ratings: boolean;
+  /** Where move ratings show: nowhere, only in the move list, or on the board too. */
+  ratings: "off" | "list" | "board";
   evalBar: boolean;
   /** Seconds per move before a random move is played for you. 0 is off. */
   moveTimer: number;
   blindfold: boolean;
   /** Board the game is played on. The host picks it for both players. */
   view: "2d" | "3d";
+  /** Low keeps only square flashes and rating badges, for slow machines or calmer games. */
+  fx: "full" | "low";
 }
 
 export const DEFAULT_MODS: Mods = {
   clock: { minutes: 5, increment: 3 },
-  ratings: true,
+  ratings: "board",
   evalBar: false,
   moveTimer: 0,
   blindfold: false,
   view: "2d",
+  fx: "full",
 };
 
 export const CLOCK_PRESETS: { label: string; value: ClockSetting | null }[] = [
