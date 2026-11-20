@@ -67,8 +67,6 @@
   z-index: 3;
 }
 
-/* Thin bar filling along the bottom while you hover, so the preview never surprises you. */
-.charge { position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; background: var(--rarity); transform-origin: left; animation: charge 1s linear forwards; z-index: 3; }
 
 .sm { padding: 7px 10px; min-height: 34px; }
 .sm .title { font-size: 12.5px; }
@@ -127,7 +125,6 @@
 .deckGrid .md { padding-right: 44px; }
 .deckGrid .card[aria-disabled]:not(.active) { opacity: 0.35; }
 
-@keyframes charge { from { scale: 0 1; } to { scale: 1 1; } }
 
 @media (max-width: 700px) {
   .options { grid-template-columns: 1fr; }

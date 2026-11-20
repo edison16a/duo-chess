@@ -60,7 +60,6 @@ export function PowerCard({ id, size = "md", active, disabled, crossed, tag, onC
           {size === "lg" && <span className={styles.blurb}>{def.blurb}</span>}
         </span>
         {tag && <span className={styles.tag}>{tag}</span>}
-        {hover.progress && <span className={styles.charge} aria-hidden />}
       </button>
       {hover.open && hover.rect && <PowerPreview id={id} anchor={hover.rect} onClose={hover.close} />}
     </>
