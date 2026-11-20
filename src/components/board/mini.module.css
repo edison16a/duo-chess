@@ -1,0 +1,6 @@
+.mini { position: relative; border-radius: 6px; overflow: hidden; flex-shrink: 0; }
+.mini > * { position: absolute; }
+.light { background: #eed8b5; }
+.dark { background: #b4865f; }
+.hole { background: var(--bg); }
+.mini img { pointer-events: none; }
