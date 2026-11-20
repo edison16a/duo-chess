@@ -68,7 +68,7 @@
 }
 
 /* Thin bar filling along the bottom while you hover, so the preview never surprises you. */
-.charge { position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; background: var(--rarity); transform-origin: left; animation: charge 3s linear forwards; z-index: 3; }
+.charge { position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; background: var(--rarity); transform-origin: left; animation: charge 1s linear forwards; z-index: 3; }
 
 .sm { padding: 7px 10px; min-height: 34px; }
 .sm .title { font-size: 12.5px; }

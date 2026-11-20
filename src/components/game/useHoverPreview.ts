@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 /** How long you rest on a card before the 3D preview opens. */
-export const HOVER_DELAY = 3000;
+export const HOVER_DELAY = 1000;
 
 /**
  * Opens a preview after the pointer rests on an element for HOVER_DELAY.
