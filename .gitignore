@@ -12,3 +12,6 @@ test-results
 playwright-report
 .DS_Store
 AGENTS.md
+
+# Agent worktrees made while developing.
+.claude/worktrees
