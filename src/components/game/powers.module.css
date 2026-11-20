@@ -16,19 +16,9 @@
 .card:hover:not([aria-disabled]) { border-color: var(--rarity); transform: translateY(-1px); }
 .card[aria-disabled] { cursor: default; }
 .card.active { border-color: var(--rarity); box-shadow: 0 0 0 1px var(--rarity), 0 0 22px color-mix(in srgb, var(--rarity) 40%, transparent); }
+/* Cards you passed on just dim; no strike line. */
 .card.crossed { opacity: 0.32; filter: grayscale(0.7); }
-.card.crossed::after {
-  content: "";
-  position: absolute;
-  left: 6%;
-  right: 6%;
-  top: 50%;
-  height: 3px;
-  border-radius: 3px;
-  background: var(--danger);
-  rotate: -14deg;
-  z-index: 3;
-}
+
 .chromatic { border-color: transparent; }
 .chromatic::before {
   content: "";
