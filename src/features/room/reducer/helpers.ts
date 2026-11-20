@@ -1,7 +1,7 @@
 import { endGame, legalMoves, opposite, type Color, type GameResult, type Move } from "@/engine";
 import { buildGame, effectiveMoveTimer } from "@/features/modes";
 import { MODE_BY_ID } from "@/features/modes";
-import { createDraft } from "@/features/powers";
+import { createDraft, createSlots } from "@/features/powers";
 import { startClock, stopClock } from "../clock";
 import type { ReduceCtx, RoomState } from "../types";
 
@@ -27,12 +27,19 @@ export function nextDeadline(state: RoomState, ctx: ReduceCtx): number | null {
   return seconds > 0 ? ctx.now + seconds * 1000 : null;
 }
 
-/** Seats the first two players and starts the draft or the game itself. */
+/**
+ * Seats the first two players and starts the draft or the game itself.
+ * Random style has nothing to draft, so both hands are rolled here and the
+ * game starts straight away.
+ */
 export function beginGame(state: RoomState, ctx: ReduceCtx, seats: Record<Color, string>): RoomState {
   const game = buildGame(state.config, ctx.random);
   const base: RoomState = { ...state, seats, game, drawOffer: null, rematch: [], notice: null, clock: null, moveDeadline: null };
   if (MODE_BY_ID[state.config.mode].powers) {
-    return { ...base, phase: "draft", draft: createDraft(state.config.draftStyle ?? "split", state.config.powersEach ?? 4, ctx.random) };
+    const style = state.config.draftStyle ?? "split";
+    const size = state.config.powersEach ?? 4;
+    if (style === "random") return startPlay({ ...base, game: { ...game, powers: createSlots(size, ctx.random) }, draft: null }, ctx);
+    return { ...base, phase: "draft", draft: createDraft(style, size, ctx.random) };
   }
   return startPlay({ ...base, draft: null }, ctx);
 }

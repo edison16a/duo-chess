@@ -3,7 +3,7 @@ import { createGame, createPosition, DEFAULT_RULES, legalMoves, parseSquare, pla
 import { scoreRootMoves } from "@/features/analysis/search";
 import { BOT_ID, BotBrain, BotPlayer, buildDeck, chooseDraft, chooseDuckSquare, planPower } from "@/features/bot";
 import { DEFAULT_MODS } from "@/features/modes";
-import { ALL_POWERS, activatePower, createDraft, deckBudget, deckCost, deckProblem, powersOfRarity } from "@/features/powers";
+import { ALL_POWERS, activatePower, createDraft, deckBudget, deckCost, deckProblem, powersOfRarity, readySlot } from "@/features/powers";
 import { createRoom, reduceRoom } from "@/features/room/reducer";
 import { randomMove } from "@/features/room/reducer/helpers";
 import type { RoomAction, RoomState } from "@/features/room/types";
@@ -81,16 +81,19 @@ describe("bot duck placement", () => {
 });
 
 describe("bot player in a room", () => {
-  it("drafts, fires powers and moves until the game is done", async () => {
+  it.each(["split", "random"] as const)("plays a %s style game, firing powers and moving", async (draftStyle) => {
     const random = seeded(11);
     const ctx = () => ({ now: Date.now(), random });
     const base = createRoom("BOT", "me", "Me", Date.now());
     let room: RoomState = {
       ...base,
-      config: { ...base.config, mode: "superpowers", hostColor: "w", draftStyle: "split", powersEach: 6, mods: { ...DEFAULT_MODS, clock: null } },
+      config: { ...base.config, mode: "superpowers", hostColor: "w", draftStyle, powersEach: 6, mods: { ...DEFAULT_MODS, clock: null } },
     };
     const brain = new BotBrain({ search: async (pos, depth) => scoreRootMoves(pos, depth, 600) }, random);
+    let coolingTries = 0;
     const dispatch = (action: RoomAction) => {
+      // The bot should never reach for a slot that is still recharging.
+      if (action.type === "power" && action.id === BOT_ID && room.game?.powers && readySlot(room.game.powers, "b", action.power) < 0) coolingTries++;
       const next = reduceRoom(room, action, ctx());
       if (next === room) return;
       room = next;
@@ -99,7 +102,9 @@ describe("bot player in a room", () => {
     const bot = new BotPlayer({ state: () => room, dispatch }, { elo: 3000, brain, random, pace: 0 });
     dispatch({ type: "join", id: BOT_ID, name: "Bot 3000" });
     dispatch({ type: "start", id: "me" });
-    expect(room.phase).toBe("draft");
+    // Random style has no draft, so the bot must not wait on one.
+    expect(room.phase).toBe(draftStyle === "random" ? "playing" : "draft");
+    const opening = room.game!.powers?.inventory.b.slice();
 
     for (let step = 0; step < 400 && room.phase !== "over" && (room.game?.history.length ?? 0) < 40; step++) {
       if (room.phase === "draft" && room.draft && room.draft.options.w.length) {
@@ -115,5 +120,10 @@ describe("bot player in a room", () => {
     expect(history.length).toBeGreaterThan(10);
     expect(history.some((h) => h.color === "b" && h.power)).toBe(true);
     expect(history.filter((h) => h.color === "b" && !h.power).length).toBeGreaterThan(4);
+    expect(coolingTries).toBe(0);
+    if (draftStyle === "random") {
+      expect(room.game!.powers!.inventory.b).toHaveLength(6);
+      expect(room.game!.powers!.inventory.b).not.toEqual(opening);
+    }
   });
 });

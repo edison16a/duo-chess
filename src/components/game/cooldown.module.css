@@ -1,0 +1,28 @@
+/* A Random style slot that is recharging: an empty, dimmed card with the turns left. */
+.slot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 12px;
+  border: 1px dashed var(--border);
+  background: var(--surface);
+  color: var(--faint);
+  opacity: 0.7;
+}
+.sm { padding: 7px 10px; min-height: 34px; }
+.md { grid-column: 1 / -1; min-height: 64px; padding: 10px 12px; }
+.count {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1.5px solid var(--faint);
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+.sm .count { width: 20px; height: 20px; font-size: 11.5px; }
+.label { font-size: 12.5px; font-weight: 600; letter-spacing: 0.02em; }
