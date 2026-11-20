@@ -1,20 +1,25 @@
 /** In game actions: moves, powers, the draft, clocks and endings. */
 
 import { opposite, playMove, type Move } from "@/engine";
-import { activatePower, applyDraft, draftDone } from "@/features/powers";
+import { activatePower, applyDraft, draftDone, refillSlots } from "@/features/powers";
 import { chargeMove, remaining } from "../clock";
 import type { ReduceCtx, RoomAction, RoomState } from "../types";
 import { beginGame, colorOf, finish, nextDeadline, notice, randomMove, startPlay } from "./helpers";
 
 type PlayAction = Extract<RoomAction, { type: "draft" | "move" | "power" | "resign" | "draw-offer" | "draw-answer" | "rematch" | "annotate" | "tick" }>;
 
-/** Applies a move for `id` and handles clocks, deadlines and the end of the game. */
+/**
+ * Applies a move for `id` and handles clocks, deadlines and the end of the
+ * game. Random style slots whose cooldown just ran out are refilled here,
+ * since only the host may roll.
+ */
 function applyMove(state: RoomState, id: string, move: Move, ctx: ReduceCtx): RoomState {
   const color = colorOf(state, id);
   const game = state.game;
   if (state.phase !== "playing" || !game || !color || game.pos.turn !== color) return state;
-  const next = playMove(game, move);
-  if (!next) return notice(state, id, "That move is not allowed", ctx);
+  const played = playMove(game, move);
+  if (!played) return notice(state, id, "That move is not allowed", ctx);
+  const next = refillSlots(played, ctx.random);
   const passed = next.pos.turn !== color;
   const clock = state.clock && state.config.mods.clock
     ? chargeMove(state.clock, color, passed, state.config.mods.clock.increment, ctx.now)
@@ -31,8 +36,10 @@ export function reducePlay(state: RoomState, action: PlayAction, ctx: ReduceCtx)
     case "power": {
       const color = colorOf(state, action.id);
       if (state.phase !== "playing" || !state.game || !color) return state;
-      const result = activatePower(state.game, color, action.power, action.squares, ctx.random);
-      if (typeof result === "string") return notice(state, action.id, result, ctx);
+      const fired = activatePower(state.game, color, action.power, action.squares, ctx.random);
+      if (typeof fired === "string") return notice(state, action.id, fired, ctx);
+      // A power that uses the move ends the turn, which can finish a cooldown.
+      const result = refillSlots(fired, ctx.random);
       const passed = result.pos.turn !== color;
       const clock = state.clock && state.config.mods.clock && passed
         ? chargeMove(state.clock, color, true, state.config.mods.clock.increment, ctx.now)
