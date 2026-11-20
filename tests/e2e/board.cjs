@@ -111,6 +111,16 @@ function expect(cond, msg) {
     await b.mouse.click((await center(b, "a5")).x, (await center(b, "a5")).y);
     expect((await count(b, "[data-premove]")) === 0, "clicking an empty square cancels premove");
 
+    // Premoves chain, and each one is shown on the board right away.
+    await move(b, sq("a7"), sq("a6"));
+    await move(b, sq("a6"), sq("a5"));
+    let chain = await pieces(b);
+    expect(chain.a5 === "pawn" && !chain.a7 && !chain.a6, "chained premoves move the pawn on your board");
+    expect((await count(b, "[data-premove]")) === 3, "every queued square is tinted");
+    await b.mouse.click((await center(b, "h5")).x, (await center(b, "h5")).y, { button: "right" });
+    chain = await pieces(b);
+    expect(chain.a7 === "pawn" && !chain.a5, "cancelling puts the pawn back");
+
     // A premove that becomes illegal is dropped.
     await move(b, sq("d8"), sq("h4"));
     expect((await count(b, "[data-premove]")) === 2, "queen premove queued");
