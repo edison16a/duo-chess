@@ -72,6 +72,7 @@ export function useBoard3DSync(scene: RefObject<BoardScene | null>, ready: boole
 
   useEffect(() => {
     if (!ready || !props.events.length) return;
+    scene.current!.lite = props.fx === "low";
     scene.current!.playEvents(props.events);
     playEventSounds(props.events);
     // Only a new event sequence should replay effects.
@@ -80,6 +81,7 @@ export function useBoard3DSync(scene: RefObject<BoardScene | null>, ready: boole
   useEffect(() => {
     if (!ready) return;
     const r = props.rating;
+    scene.current!.lite = props.fx === "low";
     scene.current!.setRating(r ? { ...r, glyph: RATINGS[r.id].glyph, color: RATING_HEX[r.id] } : null);
   }, [ready, scene, props.rating?.key]); // eslint-disable-line react-hooks/exhaustive-deps
 }

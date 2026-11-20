@@ -13,6 +13,8 @@ import { eventEffects, ratingEffect, type FxContext } from "../fx";
 import { ArrowLayer } from "./arrows3d";
 import { CameraRig } from "./cameraRig";
 import { EffectSync } from "./effectSync";
+import { eventFlashes } from "@/features/fx";
+import { SquareFlash } from "../fx/flash";
 import { HighlightLayer, type Highlight } from "./highlights";
 import { PieceSync } from "./pieceSync";
 import type { Arrow } from "@/components/board/useAnnotations";
@@ -38,6 +40,8 @@ export class BoardScene {
   private effects = new EffectSync(this.pieces);
   private badge: THREE.Sprite | null = null;
   private badgeKey = "";
+  /** Low effect detail: square flashes instead of 3D effects, and the badge without its burst. */
+  lite = false;
   private colors = { light: "", dark: "" };
   private frame = 0;
   private last = performance.now();
@@ -94,6 +98,10 @@ export class BoardScene {
   }
 
   playEvents(events: GameEvent[]): void {
+    if (this.lite) {
+      for (const f of eventFlashes(events)) this.effects.play(new SquareFlash(f.color), squareToWorld(this.shape, f.square));
+      return;
+    }
     for (const placed of eventEffects(events)) {
       const at = placed.square >= 0 ? squareToWorld(this.shape, placed.square) : new THREE.Vector3();
       this.effects.play(placed.effect, at);
@@ -108,7 +116,7 @@ export class BoardScene {
     const at = squareToWorld(this.shape, rating.square);
     const id = this.pieces.idAt(rating.square);
     const height = (id !== null && this.pieces.anchor(id)?.height) || 1.1;
-    if (this.badgeKey !== rating.key) this.effects.play(ratingEffect(rating.id, height), at);
+    if (this.badgeKey !== rating.key && !this.lite) this.effects.play(ratingEffect(rating.id, height), at);
     this.badgeKey = rating.key;
     this.badge = new THREE.Sprite(new THREE.SpriteMaterial({ map: badgeTexture(rating.glyph, rating.color), depthTest: false, transparent: true }));
     this.badge.scale.setScalar(0.5);
